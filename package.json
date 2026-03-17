@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "prettier-check": "prettier --config .prettierrc '**/*.{js,jsx,ts,tsx}' --check",
+    "prettier-write": "prettier --config .prettierrc '**/*.{js,jsx,ts,tsx}' --write",
     "drizzle-kit": "drizzle-kit"
   },
   "dependencies": {
@@ -25,6 +27,8 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
