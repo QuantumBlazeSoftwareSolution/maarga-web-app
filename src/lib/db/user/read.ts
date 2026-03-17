@@ -13,7 +13,6 @@ export async function getUserById(id: string): Promise<UserById> {
       .select()
       .from(usersTable)
       .where(eq(usersTable.id, id));
-
     return {
       message: 'User find success.',
       status: true,
@@ -22,7 +21,7 @@ export async function getUserById(id: string): Promise<UserById> {
   } catch (error) {
     return {
       status: false,
-      message: 'Use cannot find.',
+      message: 'User cannot find.',
     };
   }
 }
