@@ -1,3 +1,5 @@
+'use server';
+
 import { db } from '..';
 import { User, UserInsert, usersTable } from '../schema/users';
 
