@@ -3,7 +3,8 @@
 import { StationInsert, stationTable } from '@/src/lib/db/schema/station';
 import { createBatchStations } from '../db/stations/write';
 import { db } from '@/src/lib/db';
-import { sql } from 'drizzle-orm';
+import { sql, eq, desc } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Server Action to bulk import stations with batching.
@@ -59,5 +60,62 @@ export async function bulkImportStations(stations: StationInsert[]) {
       message:
         error instanceof Error ? error.message : 'Unknown error during import',
     };
+  }
+}
+
+/**
+ * Server Action to fetch all stations
+ */
+export async function getStations() {
+  try {
+    const stations = await db.select()
+      .from(stationTable)
+      .orderBy(desc(stationTable.createdAt));
+    return { success: true, data: stations };
+  } catch (error) {
+    console.error('[GET STATIONS ERROR]', error);
+    return { success: false, data: [] };
+  }
+}
+
+/**
+ * Server Action to create a single station manually
+ */
+export async function createStation(station: StationInsert) {
+  try {
+    await db.insert(stationTable).values(station);
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station created successfully' };
+  } catch (error) {
+    console.error('[CREATE STATION ERROR]', error);
+    return { success: false, message: 'Failed to create station' };
+  }
+}
+
+/**
+ * Server Action to update a station
+ */
+export async function updateStation(id: string, data: Partial<StationInsert>) {
+  try {
+    await db.update(stationTable).set(data).where(eq(stationTable.id, id));
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station updated successfully' };
+  } catch (error) {
+    console.error('[UPDATE STATION ERROR]', error);
+    return { success: false, message: 'Failed to update station' };
+  }
+}
+
+/**
+ * Server Action to delete a station
+ */
+export async function deleteStation(id: string) {
+  try {
+    await db.delete(stationTable).where(eq(stationTable.id, id));
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station deleted successfully' };
+  } catch (error) {
+    console.error('[DELETE STATION ERROR]', error);
+    return { success: false, message: 'Failed to delete station' };
   }
 }

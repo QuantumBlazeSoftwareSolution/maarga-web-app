@@ -19,3 +19,7 @@ export const userStatusEnum = pgEnum('user_status', userStatusEnumItems);
 // admin roles
 export const adminRoleEnumItems = ['super_admin', 'admin'] as const;
 export const adminRoleEnum = pgEnum('admin_role', adminRoleEnumItems);
+
+// station types
+export const stationTypeEnumItems = ['fuel', 'gas', 'ev'] as const;
+export const stationTypeEnum = pgEnum('station_type', stationTypeEnumItems);
