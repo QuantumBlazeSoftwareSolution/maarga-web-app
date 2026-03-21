@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { Inter, Oswald } from 'next/font/google';
+import { Inter, Oswald, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
+import SplashLoader from '@/src/components/SplashLoader';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -9,6 +10,11 @@ const inter = Inter({
 
 const oswald = Oswald({
   variable: '--font-oswald',
+  subsets: ['latin'],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-plus-jakarta-sans',
   subsets: ['latin'],
 });
 
@@ -24,7 +30,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${oswald.variable} antialiased`}>
+      <body className={`${inter.variable} ${oswald.variable} ${plusJakartaSans.variable} antialiased font-sans`}>
+        <SplashLoader />
         {children}
       </body>
     </html>
