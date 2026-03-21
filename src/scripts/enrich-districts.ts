@@ -19,12 +19,29 @@ const db = drizzle(sql);
 /**
  * Normalizes API response district names to our Enum
  */
-const normalizeDistrict = (name: string): typeof districtEnumItems[number] | null => {
+const normalizeDistrict = (
+  name: string,
+): (typeof districtEnumItems)[number] | null => {
   if (!name) return null;
   // Sri Lankan districts from API often end with " District" or have "DS Division" (which we want to ignore for the main district)
-  const cleanName = name.replace(/ district/i, '').replace(/ ds division/i, '').trim();
+  const cleanName = name
+    .replace(/ district/i, '')
+    .replace(/ ds division/i, '')
+    .trim();
+
+  // Manual mappings for common mismatches
+  const manualMapping: Record<string, (typeof districtEnumItems)[number]> = {
+    Monaragala: 'Moneragala',
+    Kurunǣgala: 'Kurunegala',
+    'Nuwara-Eliya': 'Nuwara Eliya',
+    'Matara-District': 'Matara',
+    'Galle-District': 'Galle',
+  };
+
+  if (manualMapping[cleanName]) return manualMapping[cleanName];
+
   const match = districtEnumItems.find(
-    (d) => d.toLowerCase() === cleanName.toLowerCase()
+    (d) => d.toLowerCase() === cleanName.toLowerCase(),
   );
   return match || null;
 };
@@ -34,7 +51,12 @@ async function enrichDistricts() {
 
   // 1. Fetch stations without a district
   const stations = await db
-    .select({ id: stationTable.id, name: stationTable.name, latitude: stationTable.latitude, longitude: stationTable.longitude })
+    .select({
+      id: stationTable.id,
+      name: stationTable.name,
+      latitude: stationTable.latitude,
+      longitude: stationTable.longitude,
+    })
     .from(stationTable)
     .where(isNull(stationTable.district));
 
@@ -63,15 +85,22 @@ async function enrichDistricts() {
 
       const data = await response.json();
       console.log(`   🔍 Raw Address:`, JSON.stringify(data.address));
-      
+
       // Nominatim hierarchy in Sri Lanka:
       // address.state_district is usually the canonical District name.
       // address.county is often the DS Division (which we use if state_district is missing).
-      const rawDistrict = data.address?.state_district || data.address?.county || data.address?.district || data.address?.city_district;
+      const rawDistrict =
+        data.address?.state_district ||
+        data.address?.county ||
+        data.address?.district ||
+        data.address?.city_district;
       const district = normalizeDistrict(rawDistrict);
 
       if (district) {
-        await db.update(stationTable).set({ district }).where(eq(stationTable.id, s.id));
+        await db
+          .update(stationTable)
+          .set({ district })
+          .where(eq(stationTable.id, s.id));
         console.log(`   ✅ Mapped to: ${district}`);
         successCount++;
       } else {

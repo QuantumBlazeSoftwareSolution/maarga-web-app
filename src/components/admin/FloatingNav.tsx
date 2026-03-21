@@ -12,8 +12,8 @@ const nmPressed = 'inset 4px 4px 10px #c0c3c8, inset -4px -4px 10px #ffffff';
 // ── Corner snap positions ──────────────────────────────────────────────────
 type Corner = 'tl' | 'tr' | 'bl' | 'br';
 
-const BUBBLE_SIZE = 56;   // px — the collapsed bubble diameter
-const MARGIN = 20;        // px — distance from screen edge when snapped
+const BUBBLE_SIZE = 56; // px — the collapsed bubble diameter
+const MARGIN = 20; // px — distance from screen edge when snapped
 const DRAG_THRESHOLD = 8; // px — minimum movement before drag activates
 
 interface NavItem {
@@ -66,10 +66,14 @@ function getCornerPosition(corner: Corner): { x: number; y: number } {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   switch (corner) {
-    case 'tl': return { x: MARGIN, y: MARGIN };
-    case 'tr': return { x: vw - BUBBLE_SIZE - MARGIN, y: MARGIN };
-    case 'bl': return { x: MARGIN, y: vh - BUBBLE_SIZE - MARGIN };
-    case 'br': return { x: vw - BUBBLE_SIZE - MARGIN, y: vh - BUBBLE_SIZE - MARGIN };
+    case 'tl':
+      return { x: MARGIN, y: MARGIN };
+    case 'tr':
+      return { x: vw - BUBBLE_SIZE - MARGIN, y: MARGIN };
+    case 'bl':
+      return { x: MARGIN, y: vh - BUBBLE_SIZE - MARGIN };
+    case 'br':
+      return { x: vw - BUBBLE_SIZE - MARGIN, y: vh - BUBBLE_SIZE - MARGIN };
   }
 }
 
@@ -99,10 +103,10 @@ export default function FloatingNav() {
 
   // Refs for drag tracking
   const dragOffset = useRef({ x: 0, y: 0 });
-  const dragStartPos = useRef({ x: 0, y: 0 });   // pointer position at pointerdown
-  const hasMoved = useRef(false);                  // true once drag threshold exceeded
-  const isDragActive = useRef(false);              // mirrors isDragging for callbacks
-  const isPointerDown = useRef(false);             // guard: only process moves when button held
+  const dragStartPos = useRef({ x: 0, y: 0 }); // pointer position at pointerdown
+  const hasMoved = useRef(false); // true once drag threshold exceeded
+  const isDragActive = useRef(false); // mirrors isDragging for callbacks
+  const isPointerDown = useRef(false); // guard: only process moves when button held
   const bubbleRef = useRef<HTMLDivElement>(null);
 
   // Snap to a corner with smooth transition
@@ -146,7 +150,7 @@ export default function FloatingNav() {
     const dy = e.clientY - dragStartPos.current.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (!isDragActive.current && dist < DRAG_THRESHOLD) return;  // Still a potential tap
+    if (!isDragActive.current && dist < DRAG_THRESHOLD) return; // Still a potential tap
 
     // Threshold exceeded — activate drag mode
     if (!isDragActive.current) {
@@ -175,16 +179,19 @@ export default function FloatingNav() {
       snapToCorner(nearest);
     } else if (!hasMoved.current) {
       // Clean tap — toggle menu
-      setIsOpen(prev => !prev);
+      setIsOpen((prev) => !prev);
     }
   }, [pos, snapToCorner]);
 
-  const handleNavClick = useCallback((path: string) => {
-    setIsOpen(false);
-    router.push(path);
-  }, [router]);
+  const handleNavClick = useCallback(
+    (path: string) => {
+      setIsOpen(false);
+      router.push(path);
+    },
+    [router],
+  );
 
-  if (!pos) return null;   // Not yet mounted
+  if (!pos) return null; // Not yet mounted
 
   // Determine which side the menu should open towards (avoid going off-screen)
   const openLeft = corner === 'tr' || corner === 'br';
@@ -198,7 +205,9 @@ export default function FloatingNav() {
         left: pos.x,
         top: pos.y,
         zIndex: 9999,
-        transition: isSnapping ? 'left 0.3s cubic-bezier(0.34,1.56,0.64,1), top 0.3s cubic-bezier(0.34,1.56,0.64,1)' : 'none',
+        transition: isSnapping
+          ? 'left 0.3s cubic-bezier(0.34,1.56,0.64,1), top 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+          : 'none',
         userSelect: 'none',
         touchAction: 'none',
       }}
@@ -214,9 +223,18 @@ export default function FloatingNav() {
           [openUp ? 'bottom' : 'top']: 0,
           pointerEvents: isOpen ? 'auto' : 'none',
           opacity: isOpen ? 1 : 0,
-          transform: isOpen ? 'scale(1) translateY(0)' : `scale(0.85) translateY(${openUp ? 12 : -12}px)`,
-          transformOrigin: openLeft ? (openUp ? 'bottom right' : 'top right') : (openUp ? 'bottom left' : 'top left'),
-          transition: 'opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+          transform: isOpen
+            ? 'scale(1) translateY(0)'
+            : `scale(0.85) translateY(${openUp ? 12 : -12}px)`,
+          transformOrigin: openLeft
+            ? openUp
+              ? 'bottom right'
+              : 'top right'
+            : openUp
+              ? 'bottom left'
+              : 'top left',
+          transition:
+            'opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1)',
           background: BASE,
           boxShadow: nmOuter,
           borderRadius: 16,
@@ -228,8 +246,21 @@ export default function FloatingNav() {
         }}
       >
         {/* Section label */}
-        <div style={{ padding: '4px 12px 2px', display: openUp ? 'none' : 'block' }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9ca3af' }}>
+        <div
+          style={{
+            padding: '4px 12px 2px',
+            display: openUp ? 'none' : 'block',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 900,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: '#9ca3af',
+            }}
+          >
             Navigation
           </span>
         </div>
@@ -251,32 +282,54 @@ export default function FloatingNav() {
               cursor: 'pointer',
               transition: `opacity 0.2s ease ${i * 0.04}s, transform 0.2s cubic-bezier(0.34,1.56,0.64,1) ${i * 0.04}s, box-shadow 0.15s ease`,
               opacity: isOpen ? 1 : 0,
-              transform: isOpen ? 'translateX(0)' : `translateX(${openLeft ? 16 : -16}px)`,
+              transform: isOpen
+                ? 'translateX(0)'
+                : `translateX(${openLeft ? 16 : -16}px)`,
               whiteSpace: 'nowrap',
               textAlign: 'left',
             }}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = nmPressed)}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = nmSubtle)}
-            onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.97)')}
-            onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = nmPressed)}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = nmSubtle)}
+            onMouseDown={(e) =>
+              (e.currentTarget.style.transform = 'scale(0.97)')
+            }
+            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           >
             {/* Icon container */}
-            <div style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              background: BASE,
-              boxShadow: nmPressed,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={item.color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: BASE,
+                boxShadow: nmPressed,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke={item.color}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d={item.icon} />
               </svg>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#374151',
+                fontFamily: 'Inter, -apple-system, sans-serif',
+              }}
+            >
               {item.label}
             </span>
           </button>
@@ -285,7 +338,15 @@ export default function FloatingNav() {
         {/* Divider before label when opening upward */}
         {openUp && (
           <div style={{ padding: '2px 12px 4px' }}>
-            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9ca3af' }}>
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 900,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#9ca3af',
+              }}
+            >
               Navigation
             </span>
           </div>
@@ -311,9 +372,21 @@ export default function FloatingNav() {
       >
         {/* Hamburger icon — visible when closed */}
         <svg
-          width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke="#374151" strokeWidth={2.2} strokeLinecap="round"
-          style={{ position: 'absolute', transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: isOpen ? 0 : 1, transform: isOpen ? 'rotate(-45deg) scale(0.7)' : 'rotate(0deg) scale(1)' }}
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#374151"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          style={{
+            position: 'absolute',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+            opacity: isOpen ? 0 : 1,
+            transform: isOpen
+              ? 'rotate(-45deg) scale(0.7)'
+              : 'rotate(0deg) scale(1)',
+          }}
         >
           <line x1="3" y1="7" x2="21" y2="7" />
           <line x1="3" y1="12" x2="21" y2="12" />
@@ -321,9 +394,21 @@ export default function FloatingNav() {
         </svg>
         {/* X icon — visible when open */}
         <svg
-          width="20" height="20" viewBox="0 0 24 24" fill="none"
-          stroke="#374151" strokeWidth={2.2} strokeLinecap="round"
-          style={{ position: 'absolute', transition: 'opacity 0.2s ease, transform 0.2s ease', opacity: isOpen ? 1 : 0, transform: isOpen ? 'rotate(0deg) scale(1)' : 'rotate(45deg) scale(0.7)' }}
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#374151"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          style={{
+            position: 'absolute',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+            opacity: isOpen ? 1 : 0,
+            transform: isOpen
+              ? 'rotate(0deg) scale(1)'
+              : 'rotate(45deg) scale(0.7)',
+          }}
         >
           <line x1="5" y1="5" x2="19" y2="19" />
           <line x1="19" y1="5" x2="5" y2="19" />
@@ -331,21 +416,23 @@ export default function FloatingNav() {
 
         {/* Drag hint tooltip — only while dragging */}
         {isDragging && (
-          <div style={{
-            position: 'absolute',
-            bottom: BUBBLE_SIZE + 6,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#1f2937',
-            color: '#fff',
-            fontSize: 10,
-            fontWeight: 700,
-            padding: '3px 8px',
-            borderRadius: 6,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            opacity: 0.85,
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: BUBBLE_SIZE + 6,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#1f2937',
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 700,
+              padding: '3px 8px',
+              borderRadius: 6,
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              opacity: 0.85,
+            }}
+          >
             Drop to snap ↗↙
           </div>
         )}

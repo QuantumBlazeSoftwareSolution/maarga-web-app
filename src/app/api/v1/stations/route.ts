@@ -10,7 +10,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     console.error('[API v1 Stations] Error:', error);
     return NextResponse.json(
       { message: 'Failed to fetch stations' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
