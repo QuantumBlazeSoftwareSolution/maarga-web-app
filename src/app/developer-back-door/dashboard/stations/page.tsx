@@ -34,6 +34,7 @@ type StationItem = any; // Will match the DB schema
 export default function StationManagementPage() {
   const [stations, setStations] = useState<StationWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Registration Form State
   const [formData, setFormData] = useState({
@@ -140,6 +141,12 @@ export default function StationManagementPage() {
     setEditingId(station.id);
     setEditData({ ...station });
   };
+
+  const filteredStations = stations.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.address.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div
@@ -278,23 +285,50 @@ export default function StationManagementPage() {
         <div className="lg:w-2/3 flex-1 flex flex-col">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-700">All Stations</h2>
-            <div style={{ boxShadow: nmPressed, background: BASE }} className="flex items-center gap-2 rounded-xl px-4 py-2">
+            <div
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2"
+            >
               <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{stations.length} Total</span>
+              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                {searchQuery ? `${filteredStations.length} FOUND` : `${stations.length} TOTAL`}
+              </span>
             </div>
+          </div>
+
+          {/* ── Search Bar ─────────────────────────────────────── */}
+          <div className="mb-8 relative group">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search station name or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="w-full appearance-none rounded-2xl border-0 pl-11 pr-4 py-4 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
+            />
           </div>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
             </div>
-          ) : stations.length === 0 ? (
-            <div style={{ boxShadow: nmPressed, background: BASE }} className="rounded-2xl p-12 text-center">
-              <p className="text-sm font-bold text-slate-500">No stations registered yet.</p>
+          ) : filteredStations.length === 0 ? (
+            <div
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="rounded-2xl p-12 text-center"
+            >
+              <p className="text-sm font-bold text-slate-500">
+                {searchQuery ? `No stations matching "${searchQuery}"` : 'No stations registered yet.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {stations.map((station) => (
+              {filteredStations.map((station) => (
                 <div key={station.id} style={{ boxShadow: nmOuter, background: BASE }} className="rounded-2xl p-6 transition-all">
                   {editingId === station.id ? (
                     <div className="space-y-4 animate-in fade-in duration-200">
