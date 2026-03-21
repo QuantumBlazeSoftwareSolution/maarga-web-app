@@ -43,7 +43,10 @@ export const POST = withAuth(async (request: Request) => {
     const { authId, email, name } = body;
 
     if (!authId || !email) {
-      return NextResponse.json({ error: 'Missing authId or email' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing authId or email' },
+        { status: 400 },
+      );
     }
 
     const user = await upsertUser({
@@ -53,12 +56,18 @@ export const POST = withAuth(async (request: Request) => {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Failed to sync user' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to sync user' },
+        { status: 500 },
+      );
     }
 
     return NextResponse.json(user);
   } catch (error) {
     console.error('API Sync Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 });

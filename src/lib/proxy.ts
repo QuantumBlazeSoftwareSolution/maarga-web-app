@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export type ApiHandler = (
   req: Request,
-  params?: unknown
+  params?: unknown,
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -18,7 +18,7 @@ export function withAuth(handler: ApiHandler) {
         console.warn(`[PROXY] Unauthorized attempt to: ${req.url}`);
         return NextResponse.json(
           { message: 'Unauthorized: Invalid or missing API Key' },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -27,7 +27,7 @@ export function withAuth(handler: ApiHandler) {
       console.error('[PROXY] Internal Error:', error);
       return NextResponse.json(
         { message: 'Internal Server Error' },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };
@@ -39,11 +39,11 @@ export function withAuth(handler: ApiHandler) {
  */
 export const proxyConfig = {
   matcher: [
-    "/", 
-    "/login", 
-    "/admin/:path*", 
-    "/manager/:path*", 
-    "/employee/:path*", 
-    "/api/:path*"
+    '/',
+    '/login',
+    '/admin/:path*',
+    '/manager/:path*',
+    '/employee/:path*',
+    '/api/:path*',
   ],
 };

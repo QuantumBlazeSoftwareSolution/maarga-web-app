@@ -20,7 +20,7 @@ function OTPContent() {
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return;
-    
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -67,7 +67,7 @@ function OTPContent() {
 
       if (res.success) {
         toast.success('Access granted. Welcome back.');
-        router.push('/developer-back-door/dashboard'); 
+        router.push('/developer-back-door/dashboard');
       } else {
         toast.error(res.message || 'Invalid or expired OTP');
       }
@@ -82,9 +82,13 @@ function OTPContent() {
     <div className="flex min-h-screen items-center justify-center bg-[#0B0E14] text-white selection:bg-emerald-500/30">
       <div className="w-full max-w-md p-8">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-light tracking-tight text-white/90">Verification</h1>
-          <p className="mt-2 text-sm text-white/40">Enter the 6-digit code sent to</p>
-          <p className="text-xs text-emerald-400/80 font-mono mt-1">{email}</p>
+          <h1 className="text-3xl font-light tracking-tight text-white/90">
+            Verification
+          </h1>
+          <p className="mt-2 text-sm text-white/40">
+            Enter the 6-digit code sent to
+          </p>
+          <p className="mt-1 font-mono text-xs text-emerald-400/80">{email}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -100,7 +104,7 @@ function OTPContent() {
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 onPaste={handlePaste}
-                className="h-14 w-full rounded-xl border border-white/5 bg-white/5 text-center text-xl font-bold text-emerald-500 transition-all focus:border-emerald-500/50 focus:bg-white/10 focus:outline-none focus:ring-0"
+                className="h-14 w-full rounded-xl border border-white/5 bg-white/5 text-center text-xl font-bold text-emerald-500 transition-all focus:border-emerald-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none"
               />
             ))}
           </div>
@@ -115,12 +119,12 @@ function OTPContent() {
         </form>
 
         <div className="mt-10 text-center">
-           <button 
-             onClick={() => router.back()}
-             className="text-xs text-white/20 hover:text-white/40 transition-colors"
-           >
-             Change Email
-           </button>
+          <button
+            onClick={() => router.back()}
+            className="text-xs text-white/20 transition-colors hover:text-white/40"
+          >
+            Change Email
+          </button>
         </div>
       </div>
     </div>
@@ -129,11 +133,13 @@ function OTPContent() {
 
 export default function OTPPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#0B0E14] text-white">
-        <p className="text-sm text-white/40">Loading...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#0B0E14] text-white">
+          <p className="text-sm text-white/40">Loading...</p>
+        </div>
+      }
+    >
       <OTPContent />
     </Suspense>
   );

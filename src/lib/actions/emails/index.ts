@@ -18,7 +18,8 @@ export async function sendAdminOtpEmail(email: string, otp: string) {
     const htmlContent = AdminOTPTemplate({ otp, email });
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"Maarga Support" <maarga.app.lk@gmail.com>',
+      from:
+        process.env.SMTP_FROM || '"Maarga Support" <maarga.app.lk@gmail.com>',
       to: email,
       subject: 'Maarga Admin Access Code',
       html: htmlContent,
@@ -26,7 +27,7 @@ export async function sendAdminOtpEmail(email: string, otp: string) {
 
     const info = await transporter.sendMail(mailOptions);
     console.log('Message sent: %s', info.messageId);
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error sending email:', error);

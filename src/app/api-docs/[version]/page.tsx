@@ -26,7 +26,9 @@ export default function ApiDocsPage({ params }: ApiDocsPageProps) {
       <div className="flex h-screen items-center justify-center bg-[#0B0E14] text-emerald-500">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
-          <p className="text-sm font-medium tracking-widest text-white/40 uppercase">Loading {version.toUpperCase()} Docs...</p>
+          <p className="text-sm font-medium tracking-widest text-white/40 uppercase">
+            Loading {version.toUpperCase()} Docs...
+          </p>
         </div>
       </div>
     );
@@ -34,18 +36,26 @@ export default function ApiDocsPage({ params }: ApiDocsPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-[#0B0E14] py-6 px-8 flex justify-between items-center border-b border-white/5">
+      <div className="flex items-center justify-between border-b border-white/5 bg-[#0B0E14] px-8 py-6">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">Maarga API</h1>
-          <p className="text-xs text-white/40 uppercase tracking-widest mt-1">
+          <h1 className="text-xl font-bold tracking-tight text-white">
+            Maarga API
+          </h1>
+          <p className="mt-1 text-xs tracking-widest text-white/40 uppercase">
             Developer Documentation {version.toUpperCase()}
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-white/20 uppercase tracking-widest font-mono">
+          <span className="font-mono text-xs tracking-widest text-white/20 uppercase">
             {version === 'v1' ? 'Current Stable' : 'Archived'}
           </span>
-          <Image src="/favicon.ico" alt="Maarga" width={32} height={32} className="opacity-50" />
+          <Image
+            src="/favicon.ico"
+            alt="Maarga"
+            width={32}
+            height={32}
+            className="opacity-50"
+          />
         </div>
       </div>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}

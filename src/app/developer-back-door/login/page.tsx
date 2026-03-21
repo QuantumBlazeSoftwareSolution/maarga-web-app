@@ -20,7 +20,9 @@ export default function LoginPage() {
       if (res.success) {
         toast.success('OTP sent successfully');
         // Redirect to OTP page with email in query param
-        router.push(`/developer-back-door/otp?email=${encodeURIComponent(email)}`);
+        router.push(
+          `/developer-back-door/otp?email=${encodeURIComponent(email)}`,
+        );
       } else {
         toast.error(res.message || 'Something went wrong');
       }
@@ -35,13 +37,18 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#0B0E14] text-white selection:bg-emerald-500/30">
       <div className="w-full max-w-md p-8">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-light tracking-tight text-white/90">Maarga</h1>
+          <h1 className="text-3xl font-light tracking-tight text-white/90">
+            Maarga
+          </h1>
           <p className="mt-2 text-sm text-white/40">Developer Back Door</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-xs font-medium uppercase tracking-widest text-white/40">
+            <label
+              htmlFor="email"
+              className="block text-xs font-medium tracking-widest text-white/40 uppercase"
+            >
               Developer Email
             </label>
             <input
@@ -51,7 +58,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
               required
-              className="w-full rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-white transition-all focus:border-emerald-500/50 focus:bg-white/10 focus:outline-none focus:ring-0"
+              className="w-full rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-white transition-all focus:border-emerald-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none"
             />
           </div>
 
