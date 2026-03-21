@@ -66,14 +66,38 @@ export async function bulkImportStations(stations: StationInsert[]) {
 }
 
 /**
- * Server Action to fetch all stations
+ * Server Action to fetch all stations with their associated items
  */
 export async function getStations() {
   try {
-    const stations = await db.select()
+    // 1. Fetch all stations
+    const stations = await db
+      .select()
       .from(stationTable)
       .orderBy(desc(stationTable.createdAt));
-    return { success: true, data: stations };
+
+    if (stations.length === 0) return { success: true, data: [] };
+
+    // 2. Fetch all station-item associations for these stations
+    // We join with itemsTable to get the name/type
+    const stationItems = await db
+      .select({
+        stationId: stationItemsTable.stationId,
+        itemId: itemsTable.id,
+        name: itemsTable.name,
+        itemType: itemsTable.itemType,
+        availability: stationItemsTable.availability,
+      })
+      .from(stationItemsTable)
+      .innerJoin(itemsTable, eq(stationItemsTable.itemId, itemsTable.id));
+
+    // 3. Map items to their respective stations
+    const data = stations.map((station) => ({
+      ...station,
+      items: stationItems.filter((si) => si.stationId === station.id),
+    }));
+
+    return { success: true, data };
   } catch (error) {
     console.error('[GET STATIONS ERROR]', error);
     return { success: false, data: [] };
