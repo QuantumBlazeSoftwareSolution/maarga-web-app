@@ -126,11 +126,7 @@ export default function AdminDashboard() {
   return (
     <div
       className="min-h-screen font-sans selection:bg-blue-200"
-      style={{
-        background: '#E1E4E9',
-        fontFamily:
-          "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-      }}
+      style={{ background: '#E1E4E9', fontFamily: "var(--font-poppins), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
     >
       {/* ── Top Navigation ─────────────────────────────────────────────── */}
       <nav
