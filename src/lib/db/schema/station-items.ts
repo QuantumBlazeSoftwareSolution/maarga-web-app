@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { stationTable } from './station';
 import { availabilityEnum } from './enum';
 import { itemsTable } from './items';
