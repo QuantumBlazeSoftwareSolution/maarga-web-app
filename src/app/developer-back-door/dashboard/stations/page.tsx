@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
-import { getStations, createStation, updateStation, deleteStation } from '@/src/lib/actions/station';
+import {
+  getStations,
+  createStation,
+  updateStation,
+  deleteStation,
+  syncAllStationItems,
+} from '@/src/lib/actions/station';
 
 // ── Neumorphism tokens ─────────────────────────────────
 const BASE = '#E1E4E9';
@@ -39,6 +45,22 @@ export default function StationManagementPage() {
       setStations(res.data);
     } else {
       toast.error('Failed to load stations');
+    }
+    setIsLoading(false);
+  };
+
+  const handleSyncItems = async () => {
+    const confirmSync = confirm(
+      'This will link ALL stations to their matching global items (Fuel/Gas/EV). This may take a few seconds. Proceed?'
+    );
+    if (!confirmSync) return;
+
+    setIsLoading(true);
+    const res = await syncAllStationItems();
+    if (res.success) {
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
     }
     setIsLoading(false);
   };
@@ -132,9 +154,17 @@ export default function StationManagementPage() {
           </div>
           <div>
             <span className="text-sm font-bold text-slate-700">Station Hub</span>
-            <span className="ml-2 text-xs text-slate-400">/ Management</span>
+            <span className="ml-2 text-xs text-slate-400">/ Logistics</span>
           </div>
         </div>
+        <button
+          onClick={handleSyncItems}
+          disabled={isLoading}
+          style={{ boxShadow: nmSubtle, background: BASE }}
+          className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-widest text-emerald-600 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap disabled:opacity-50"
+        >
+          {isLoading ? 'Syncing...' : 'Sync All Items'}
+        </button>
       </nav>
 
       {/* ── Main Layout ───────────────────────────────────────── */}
