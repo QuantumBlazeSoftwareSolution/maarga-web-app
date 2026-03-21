@@ -112,6 +112,51 @@ export default function DeveloperDashboard() {
             </div>
           </div>
 
+          {/* Station Importer Card */}
+          <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/2 p-6 transition-all hover:bg-white/4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400">
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <span className="text-[10px] tracking-widest text-white/20 uppercase">
+                Data Ingestion
+              </span>
+            </div>
+            <h2 className="mb-2 text-lg font-light text-white/90">
+              Station Importer
+            </h2>
+            <p className="mb-6 text-sm text-white/40">
+              Upload and map simplified station JSON files to the production
+              database.
+            </p>
+            <button
+              onClick={() =>
+                router.push('/developer-back-door/dashboard/station-import')
+              }
+              className="flex items-center gap-2 text-xs font-medium text-emerald-500 underline decoration-emerald-500/30 underline-offset-4 transition-all group-hover:gap-3"
+            >
+              Start Import Wizard →
+            </button>
+          </div>
+
           {/* System Status Card */}
           <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/2 p-6 transition-all">
             <div className="mb-4 flex items-center justify-between">
