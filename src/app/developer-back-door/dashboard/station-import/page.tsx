@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { bulkImportStations } from '@/src/lib/actions/station';
+import FloatingNav from '@/src/components/admin/FloatingNav';
 
 type Step = 'upload' | 'map' | 'import';
 
@@ -25,6 +26,10 @@ interface StationFeature {
   geometry: GeoJSONPoint;
   id?: string;
 }
+
+const nmOuter = '6px 6px 14px #c0c3c8, -6px -6px 14px #ffffff';
+const nmPressed = 'inset 4px 4px 10px #c0c3c8, inset -4px -4px 10px #ffffff';
+const nmSubtle = '3px 3px 8px #c0c3c8, -3px -3px 8px #ffffff';
 
 export default function StationImportPage() {
   const [step, setStep] = useState<Step>('upload');
@@ -53,21 +58,19 @@ export default function StationImportPage() {
         }
 
         setJsonData(json as StationFeature[]);
-        
-        // Extract all unique keys from first 20 records for robust mapping
+
         const sampleSize = Math.min(json.length, 20);
         const uniqueKeys = new Set<string>();
-        
+
         for (let i = 0; i < sampleSize; i++) {
           const feature = json[i] as StationFeature;
           if (feature.properties) {
             Object.keys(feature.properties).forEach(k => uniqueKeys.add(`properties.${k}`));
           }
           if (feature.geometry?.coordinates) {
-            uniqueKeys.add('geometry.coordinates[0]'); // Lon
-            uniqueKeys.add('geometry.coordinates[1]'); // Lat
+            uniqueKeys.add('geometry.coordinates[0]');
+            uniqueKeys.add('geometry.coordinates[1]');
           }
-          // General top-level keys
           Object.keys(feature).forEach(k => {
             if (k !== 'properties' && k !== 'geometry') uniqueKeys.add(k);
           });
@@ -76,21 +79,9 @@ export default function StationImportPage() {
         const keys = Array.from(uniqueKeys).sort();
         setAvailableKeys(keys);
 
-        // Try to auto-guess some mappings
         setMappedFields({
-          name:
-            keys.find(
-              (k) =>
-                k.toLowerCase().includes('name') ||
-                k.toLowerCase().includes('brand'),
-            ) || '',
-          address:
-            keys.find(
-              (k) =>
-                k.toLowerCase().includes('address') ||
-                k.toLowerCase().includes('street') ||
-                k.toLowerCase().includes('amenity'),
-            ) || '',
+          name: keys.find(k => k.toLowerCase().includes('name') || k.toLowerCase().includes('brand')) || '',
+          address: keys.find(k => k.toLowerCase().includes('address') || k.toLowerCase().includes('street') || k.toLowerCase().includes('amenity')) || '',
           longitude: 'geometry.coordinates[0]',
           latitude: 'geometry.coordinates[1]',
         });
@@ -98,37 +89,25 @@ export default function StationImportPage() {
         setStep('map');
         toast.success(`Loaded ${json.length} features successfully.`);
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'Invalid JSON file',
-        );
+        toast.error(error instanceof Error ? error.message : 'Invalid JSON file');
       }
     };
     reader.readAsText(file);
   };
 
   const getValueFromPath = (obj: StationFeature, path: string) => {
-    if (path === 'geometry.coordinates[0]')
-      return obj.geometry?.coordinates?.[0]?.toString();
-    if (path === 'geometry.coordinates[1]')
-      return obj.geometry?.coordinates?.[1]?.toString();
-
+    if (path === 'geometry.coordinates[0]') return obj.geometry?.coordinates?.[0]?.toString();
+    if (path === 'geometry.coordinates[1]') return obj.geometry?.coordinates?.[1]?.toString();
     if (path.startsWith('properties.')) {
       const key = path.split('.')[1];
       return (obj.properties as Record<string, unknown>)?.[key]?.toString();
     }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (obj as any)[path]?.toString();
   };
 
   const handleStartImport = async () => {
-    // Validate mappings
-    if (
-      !mappedFields.name ||
-      !mappedFields.address ||
-      !mappedFields.longitude ||
-      !mappedFields.latitude
-    ) {
+    if (!mappedFields.name || !mappedFields.address || !mappedFields.longitude || !mappedFields.latitude) {
       toast.error('All fields must be mapped.');
       return;
     }
@@ -136,35 +115,33 @@ export default function StationImportPage() {
     setIsImporting(true);
 
     try {
-      // Transform and validate data based on mapping
       const stationsToImport = [];
       const errors = [];
-      
+
       for (const item of jsonData) {
         const name = getValueFromPath(item, mappedFields.name)?.trim() || 'Unknown Station';
         const address = getValueFromPath(item, mappedFields.address)?.trim() || 'Sri Lanka';
         const lonStr = getValueFromPath(item, mappedFields.longitude);
         const latStr = getValueFromPath(item, mappedFields.latitude);
-        
+
         const lon = parseFloat(lonStr || '0');
         const lat = parseFloat(latStr || '0');
 
-        // Basic validation
         if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
           errors.push(`Invalid coordinates for station: ${name}`);
           continue;
         }
 
         stationsToImport.push({
-          name: name.slice(0, 255), // Basic length capping
+          name: name.slice(0, 255),
           address: address.slice(0, 500),
-          longitude: lon.toFixed(7), // Consistent precision
+          longitude: lon.toFixed(7),
           latitude: lat.toFixed(7),
         });
       }
 
       if (errors.length > 0) {
-        console.warn(`[IMPORT] Skipped ${errors.length} records due to validation errors.`, errors.slice(0, 5));
+        console.warn(`[IMPORT] Skipped ${errors.length} records`, errors.slice(0, 5));
         toast.warning(`Skipped ${errors.length} malformed records.`);
       }
 
@@ -190,56 +167,94 @@ export default function StationImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100">
-      <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 px-8 py-4 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="group flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
-            >
-              <svg className="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Return Home
-            </button>
-            <div className="h-4 w-px bg-slate-200"></div>
-            <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase">
-              Station Data Manager
-            </h1>
+    <div
+      className="min-h-screen font-sans selection:bg-blue-200"
+      style={{ background: '#E1E4E9', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
+    >
+      {/* ── Top Navigation ─────────────────────────────── */}
+      <nav
+        className="sticky top-0 z-50 flex items-center justify-between px-8 py-4"
+        style={{ background: '#E1E4E9' }}
+      >
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/developer-back-door/dashboard')}
+            style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all hover:text-slate-800 active:scale-95"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div
+            style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+          >
+            <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`h-2.5 w-2.5 rounded-full transition-colors ${step === 'upload' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`}></span>
-            <span className={`h-2.5 w-2.5 rounded-full transition-colors ${step === 'map' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`}></span>
+          <div>
+            <span className="text-sm font-bold text-slate-700">Station Data Manager</span>
+            <span className="ml-2 text-xs text-slate-400">
+              / {step === 'upload' ? 'Upload File' : 'Map Columns'}
+            </span>
           </div>
+        </div>
+
+        {/* Step pill indicator */}
+        <div
+          style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+          className="flex items-center gap-4 rounded-xl px-5 py-2.5"
+        >
+          {(['upload', 'map'] as const).map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              {i > 0 && <div className="h-px w-4 bg-slate-300" />}
+              <div className="flex items-center gap-2">
+                <div
+                  style={{
+                    boxShadow: step === s ? nmPressed : nmSubtle,
+                    background: '#E1E4E9',
+                  }}
+                  className={`flex h-5 w-5 items-center justify-center rounded-lg text-[10px] font-black ${
+                    step === s ? 'text-blue-500' : 'text-slate-400'
+                  }`}
+                >
+                  {i + 1}
+                </div>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === s ? 'text-slate-700' : 'text-slate-400'}`}>
+                  {s === 'upload' ? 'Upload' : 'Map'}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </nav>
 
-      <main className="mx-auto max-w-4xl p-8">
+      <FloatingNav />
+      {/* ── Main ───────────────────────────────────────── */}
+      <main className="mx-auto max-w-3xl px-8 pb-12 pt-4">
+
+        {/* ── Step 1: Upload ─── */}
         {step === 'upload' && (
-          <div className="flex flex-col items-center justify-center pt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex flex-col items-center justify-center pt-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="group cursor-pointer rounded-[2.5rem] border-2 border-dashed border-slate-200 bg-white p-24 text-center transition-all hover:border-blue-500/30 hover:bg-white hover:shadow-2xl hover:shadow-blue-500/5 active:scale-[0.99]"
+              style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+              className="group w-full cursor-pointer rounded-2xl p-16 text-center transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
-              <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 transition-transform group-hover:scale-110 group-hover:rotate-3 shadow-sm">
-                <svg
-                  className="h-10 w-10"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                  />
+              <div
+                style={{ boxShadow: nmOuter, background: '#E1E4E9' }}
+                className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl text-blue-500 transition-transform group-hover:scale-110"
+              >
+                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Upload Station Data</h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-500 max-w-xs mx-auto">
-                Drag and drop your station file or click to browse. Supports standard station JSON formats.
+              <h2 className="text-xl font-black text-slate-700">Upload Station Data</h2>
+              <p className="mt-3 text-sm font-medium text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Drop your JSON file here or click to browse. Supports flat-array GeoJSON.
               </p>
               <input
                 type="file"
@@ -249,89 +264,114 @@ export default function StationImportPage() {
                 className="hidden"
               />
             </div>
-            <div className="mt-10 flex items-center gap-3 rounded-full bg-white px-5 py-2.5 border border-slate-200 shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
-              <p className="text-xs font-medium text-slate-400">
-                Ready to process station records for the Maarga network.
+
+            <div
+              style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
+              className="mt-8 flex items-center gap-3 rounded-xl px-5 py-3"
+            >
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></span>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                System ready for ingestion
               </p>
             </div>
           </div>
         )}
 
+        {/* ── Step 2: Map ─── */}
         {step === 'map' && (
-          <div className="animate-in fade-in slide-in-from-right-4 space-y-8 duration-500">
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="mb-8 border-b border-slate-100 pb-6">
-                <h2 className="text-2xl font-bold text-slate-900">Link Data Columns</h2>
-                <p className="mt-1 text-sm text-slate-500">Match your file columns to our system fields for successful import.</p>
+          <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-500">
+
+            {/* Field mapping card */}
+            <div
+              style={{ boxShadow: nmOuter, background: '#E1E4E9' }}
+              className="rounded-2xl p-8"
+            >
+              <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
+                <div>
+                  <h2 className="text-lg font-black text-slate-700">Link Columns</h2>
+                  <p className="mt-0.5 text-xs font-medium text-slate-400">
+                    Match your file columns to the system fields.
+                  </p>
+                </div>
+                <div
+                  style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+                  className="rounded-xl px-3 py-1.5"
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
+                    Auto-mapped
+                  </span>
+                </div>
               </div>
-              
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {(['name', 'address', 'longitude', 'latitude'] as const).map(
-                  (field) => (
-                    <div key={field} className="space-y-3">
-                      <label className="text-[11px] font-bold tracking-widest text-blue-600 uppercase">
-                        System Field: {field}
-                      </label>
-                      <div className="relative group">
-                        <select
-                          value={mappedFields[field]}
-                          onChange={(e) =>
-                            setMappedFields({
-                              ...mappedFields,
-                              [field]: e.target.value,
-                            })
-                          }
-                          className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/50 px-5 py-4 text-sm font-medium text-slate-900 transition-all focus:border-blue-500/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/5 group-hover:border-slate-300 shadow-sm"
-                        >
-                          <option value="">Choose Column from File...</option>
-                          {availableKeys.map((k) => (
-                            <option key={k} value={k}>
-                              {k}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-slate-400 group-hover:text-slate-600 transition-colors">
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
+
+              <div className="grid grid-cols-2 gap-8">
+                {(['name', 'address', 'longitude', 'latitude'] as const).map((field) => (
+                  <div key={field} className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      {field}
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={mappedFields[field]}
+                        onChange={(e) => setMappedFields({ ...mappedFields, [field]: e.target.value })}
+                        style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+                        className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300"
+                      >
+                        <option value="">Choose column…</option>
+                        {availableKeys.map((k) => (
+                          <option key={k} value={k}>{k}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </div>
                     </div>
-                  ),
-                )}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Preview Section */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            {/* Preview card */}
+            <div
+              style={{ boxShadow: nmOuter, background: '#E1E4E9' }}
+              className="rounded-2xl p-8"
+            >
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-sm font-bold tracking-widest text-slate-400 uppercase">
-                  Data Preview
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">
+                  Preview
                 </h3>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase">
-                  First 3 Records
+                <span
+                  style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+                  className="rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400"
+                >
+                  First 3 records
                 </span>
               </div>
-              
+
               <div className="space-y-4">
                 {jsonData.slice(0, 3).map((item, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 font-medium text-sm text-slate-600 transition-colors hover:bg-slate-50"
+                    style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+                    className="rounded-xl p-5"
                   >
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Station Name</span>
-                        <span className="text-slate-900 line-clamp-1">{getValueFromPath(item, mappedFields.name) || '---'}</span>
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Name</span>
+                        <span className="text-xs font-bold text-slate-700 line-clamp-1">
+                          {getValueFromPath(item, mappedFields.name) || '—'}
+                        </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Location Details</span>
-                        <span className="text-slate-900 line-clamp-1">{getValueFromPath(item, mappedFields.address) || '---'}</span>
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Address</span>
+                        <span className="text-xs font-bold text-slate-700 line-clamp-1">
+                          {getValueFromPath(item, mappedFields.address) || '—'}
+                        </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Coordinates</span>
-                        <span className="text-slate-900 font-mono">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coords</span>
+                        <span className="font-mono text-xs font-bold text-slate-600">
                           {getValueFromPath(item, mappedFields.latitude) || '?'}, {getValueFromPath(item, mappedFields.longitude) || '?'}
                         </span>
                       </div>
@@ -341,14 +381,19 @@ export default function StationImportPage() {
               </div>
             </div>
 
+            {/* Import button */}
             <button
               disabled={isImporting}
               onClick={handleStartImport}
-              className="w-full rounded-3xl bg-blue-600 py-5 font-bold text-white shadow-xl shadow-blue-600/20 transition-all hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-50 disabled:hover:translate-y-0"
+              style={{
+                boxShadow: isImporting ? nmPressed : nmOuter,
+                background: '#E1E4E9',
+              }}
+              className="w-full rounded-2xl py-5 text-sm font-black uppercase tracking-widest text-blue-600 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
             >
               {isImporting
-                ? 'Processing Your Data...'
-                : `Import ${jsonData.length.toLocaleString()} Stations to Network`}
+                ? 'Processing…'
+                : `Import ${jsonData.length.toLocaleString()} Stations →`}
             </button>
           </div>
         )}
