@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { upsertUser } from '@/src/lib/db/user/write';
+import { withAuth } from '@/src/lib/proxy';
 
 /**
  * @openapi
@@ -36,7 +37,7 @@ import { upsertUser } from '@/src/lib/db/user/write';
  *       500:
  *         description: Failed to sync user or internal server error
  */
-export async function POST(request: Request) {
+export const POST = withAuth(async (request: Request) => {
   try {
     const body = await request.json();
     const { authId, email, name } = body;
@@ -60,4 +61,4 @@ export async function POST(request: Request) {
     console.error('API Sync Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+});

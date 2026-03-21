@@ -5,25 +5,14 @@ import {
   adminRoleEnumItems,
   userStatusEnumItems,
 } from '@/src/lib/db/schema/enum';
+import { withAuth } from '@/src/lib/proxy';
 
-export async function POST(req: Request) {
+export const POST = withAuth(async (req: Request) => {
   try {
-    const apiKey = req.headers.get('X-API-KEY');
-    if (apiKey !== process.env.DEV_API_KEY) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const { email, role, status } = await req.json();
 
     const isValidRole = adminRoleEnumItems.includes(role);
     const isValidStatus = userStatusEnumItems.includes(status);
-
-    if (!isValidRole || !isValidStatus) {
-      return NextResponse.json(
-        { message: 'Invalid role or status' },
-        { status: 400 },
-      );
-    }
 
     if (!email) {
       return NextResponse.json(
@@ -44,8 +33,8 @@ export async function POST(req: Request) {
     const admin = await createAdmin({
       admin: {
         email,
-        role: role || 'admin',
-        status: status || 'active',
+        role: isValidRole ? role : 'admin',
+        status: isValidStatus ? status : 'active',
       },
     });
 
@@ -70,4 +59,4 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-}
+});
