@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { seedCommonItems } from '@/src/lib/actions/items';
 import FloatingNav from '@/src/components/admin/FloatingNav';
 
 // ─── Neumorphism design tokens ───────────────────────────────────────────────
@@ -67,12 +66,6 @@ function arcPath(cx: number, cy: number, r: number, startDeg: number, endDeg: nu
 
 export default function AdminDashboard() {
   const router = useRouter();
-
-  const handleSeedItems = async () => {
-    const res = await seedCommonItems();
-    if (res.success) toast.success(res.message);
-    else toast.error(res.message);
-  };
 
   const handleLogout = () => {
     toast.success('Signed out successfully');
@@ -326,38 +319,6 @@ export default function AdminDashboard() {
                   >
                     <div className="h-full w-1/3 rounded-full bg-blue-300 opacity-60" />
                   </div>
-                </div>
-              </NmCard>
-
-              {/* System Configuration */}
-              <NmCard className="p-6" onClick={handleSeedItems}>
-                <div className="mb-4 flex items-start justify-between">
-                  <div
-                    style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl"
-                  >
-                    <svg className="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                    </svg>
-                  </div>
-                  <div
-                    style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-indigo-500 transition-colors"
-                  >
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 17L17 7M17 7H7M17 7v10" />
-                    </svg>
-                  </div>
-                </div>
-                <h3 className="text-base font-bold text-slate-700">System Config</h3>
-                <p className="mt-1 text-xs font-medium text-slate-400">Seed reference data</p>
-                <div className="mt-4">
-                  <span
-                    style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
-                    className="inline-block rounded-lg px-2.5 py-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest"
-                  >
-                    Tap to seed
-                  </span>
                 </div>
               </NmCard>
             </div>
