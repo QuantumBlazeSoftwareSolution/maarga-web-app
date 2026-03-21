@@ -1,14 +1,14 @@
 import { createSwaggerSpec } from 'next-swagger-doc';
 
-export const getApiDocs = async () => {
+export const getApiDocs = async (version: string = 'v1') => {
   const spec = createSwaggerSpec({
-    apiFolder: 'src/app/api', // define path to your API
+    apiFolder: `src/app/api/${version}`, // Dynamically filter based on version
     definition: {
       openapi: '3.0.0',
       info: {
-        title: 'Maarga API Documentation',
+        title: `Maarga API Documentation (${version.toUpperCase()})`,
         version: '1.0.0',
-        description: 'Developer documentation for the Maarga Web App API',
+        description: `Developer documentation for the Maarga Web App API - ${version}`,
       },
       components: {
         securitySchemes: {
