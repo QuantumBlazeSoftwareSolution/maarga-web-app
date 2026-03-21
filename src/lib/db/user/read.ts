@@ -1,3 +1,5 @@
+'use server';
+
 import { eq } from 'drizzle-orm';
 import { db } from '..';
 import { User, usersTable } from '../schema/users';
@@ -19,6 +21,7 @@ export async function getUserById(id: string): Promise<UserById> {
       user: user[0],
     };
   } catch (error) {
+    console.error('User find error:', error);
     return {
       status: false,
       message: 'User cannot find.',

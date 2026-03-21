@@ -22,6 +22,34 @@
       "when": 1773938548332,
       "tag": "0002_true_screwball",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774064906055,
+      "tag": "0003_modern_carlie_cooper",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774069226602,
+      "tag": "0004_chilly_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774076590115,
+      "tag": "0005_fancy_aaron_stack",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774114114910,
+      "tag": "0006_clever_the_enforcers",
+      "breakpoints": true
     }
   ]
 }
