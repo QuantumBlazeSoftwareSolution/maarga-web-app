@@ -190,41 +190,41 @@ export default function StationImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white selection:bg-emerald-500/30">
-      <nav className="border-b border-white/5 bg-white/2 px-8 py-4 backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-100">
+      <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 px-8 py-4 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="text-white/40 hover:text-white"
+              className="group flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
             >
-              ← Back
+              <svg className="h-4 w-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Return Home
             </button>
-            <h1 className="text-sm font-bold tracking-tight text-white/90 uppercase">
-              Station Data Importer
+            <div className="h-4 w-px bg-slate-200"></div>
+            <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase">
+              Station Data Manager
             </h1>
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`h-2 w-2 rounded-full ${step === 'upload' ? 'bg-emerald-500' : 'bg-white/10'}`}
-            ></span>
-            <span
-              className={`h-2 w-2 rounded-full ${step === 'map' ? 'bg-emerald-500' : 'bg-white/10'}`}
-            ></span>
+          <div className="flex items-center gap-3">
+            <span className={`h-2.5 w-2.5 rounded-full transition-colors ${step === 'upload' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`}></span>
+            <span className={`h-2.5 w-2.5 rounded-full transition-colors ${step === 'map' ? 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`}></span>
           </div>
         </div>
       </nav>
 
       <main className="mx-auto max-w-4xl p-8">
         {step === 'upload' && (
-          <div className="flex flex-col items-center justify-center pt-20">
+          <div className="flex flex-col items-center justify-center pt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="group cursor-pointer rounded-3xl border-2 border-dashed border-white/5 bg-white/2 p-20 text-center transition-all hover:border-emerald-500/30 hover:bg-white/4"
+              className="group cursor-pointer rounded-[2.5rem] border-2 border-dashed border-slate-200 bg-white p-24 text-center transition-all hover:border-blue-500/30 hover:bg-white hover:shadow-2xl hover:shadow-blue-500/5 active:scale-[0.99]"
             >
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 transition-transform group-hover:scale-110">
+              <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600 transition-transform group-hover:scale-110 group-hover:rotate-3 shadow-sm">
                 <svg
-                  className="h-8 w-8"
+                  className="h-10 w-10"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -237,11 +237,9 @@ export default function StationImportPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-light text-white/90">
-                Upload Station JSON
-              </h2>
-              <p className="mt-2 text-sm text-white/40">
-                Select a simplified flat-array JSON file to begin mapping.
+              <h2 className="text-2xl font-bold text-slate-900">Upload Station Data</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500 max-w-xs mx-auto">
+                Drag and drop your station file or click to browse. Supports standard station JSON formats.
               </p>
               <input
                 type="file"
@@ -251,42 +249,54 @@ export default function StationImportPage() {
                 className="hidden"
               />
             </div>
-            <p className="mt-8 text-xs text-white/20">
-              The file should contain an array of station features.
-            </p>
+            <div className="mt-10 flex items-center gap-3 rounded-full bg-white px-5 py-2.5 border border-slate-200 shadow-sm">
+              <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+              <p className="text-xs font-medium text-slate-400">
+                Ready to process station records for the Maarga network.
+              </p>
+            </div>
           </div>
         )}
 
         {step === 'map' && (
-          <div className="animate-in fade-in space-y-8 duration-500">
-            <div className="rounded-2xl border border-white/5 bg-white/2 p-6">
-              <h2 className="text-white/90Headline mb-6 text-lg font-light">
-                Field Mapping Selection
-              </h2>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="animate-in fade-in slide-in-from-right-4 space-y-8 duration-500">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="mb-8 border-b border-slate-100 pb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Link Data Columns</h2>
+                <p className="mt-1 text-sm text-slate-500">Match your file columns to our system fields for successful import.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                 {(['name', 'address', 'longitude', 'latitude'] as const).map(
                   (field) => (
-                    <div key={field} className="space-y-2">
-                      <label className="text-[10px] font-medium tracking-widest text-emerald-500/60 uppercase">
-                        DB Column: {field}
+                    <div key={field} className="space-y-3">
+                      <label className="text-[11px] font-bold tracking-widest text-blue-600 uppercase">
+                        System Field: {field}
                       </label>
-                      <select
-                        value={mappedFields[field]}
-                        onChange={(e) =>
-                          setMappedFields({
-                            ...mappedFields,
-                            [field]: e.target.value,
-                          })
-                        }
-                        className="w-full rounded-xl border border-white/5 bg-black/40 px-4 py-3 text-sm text-white focus:border-emerald-500/50 focus:outline-none"
-                      >
-                        <option value="">Select JSON Field...</option>
-                        {availableKeys.map((k) => (
-                          <option key={k} value={k}>
-                            {k}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative group">
+                        <select
+                          value={mappedFields[field]}
+                          onChange={(e) =>
+                            setMappedFields({
+                              ...mappedFields,
+                              [field]: e.target.value,
+                            })
+                          }
+                          className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/50 px-5 py-4 text-sm font-medium text-slate-900 transition-all focus:border-blue-500/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/5 group-hover:border-slate-300 shadow-sm"
+                        >
+                          <option value="">Choose Column from File...</option>
+                          {availableKeys.map((k) => (
+                            <option key={k} value={k}>
+                              {k}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-slate-400 group-hover:text-slate-600 transition-colors">
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   ),
                 )}
@@ -294,30 +304,37 @@ export default function StationImportPage() {
             </div>
 
             {/* Preview Section */}
-            <div className="rounded-2xl border border-white/5 bg-white/2 p-6">
-              <h3 className="mb-4 text-xs font-medium tracking-widest text-white/20 uppercase">
-                Data Preview (First 3 Records)
-              </h3>
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-sm font-bold tracking-widest text-slate-400 uppercase">
+                  Data Preview
+                </h3>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase">
+                  First 3 Records
+                </span>
+              </div>
+              
               <div className="space-y-4">
                 {jsonData.slice(0, 3).map((item, i) => (
                   <div
                     key={i}
-                    className="rounded-lg border border-white/5 bg-black/40 p-4 font-mono text-xs text-white/50"
+                    className="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 font-medium text-sm text-slate-600 transition-colors hover:bg-slate-50"
                   >
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-white/20">Name:</span>{' '}
-                      <span>
-                        {getValueFromPath(item, mappedFields.name) || '???'}
-                      </span>
-                      <span className="text-white/20">Address:</span>{' '}
-                      <span>
-                        {getValueFromPath(item, mappedFields.address) || '???'}
-                      </span>
-                      <span className="text-white/20">Coord:</span>{' '}
-                      <span>
-                        {getValueFromPath(item, mappedFields.latitude)},{' '}
-                        {getValueFromPath(item, mappedFields.longitude)}
-                      </span>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Station Name</span>
+                        <span className="text-slate-900 line-clamp-1">{getValueFromPath(item, mappedFields.name) || '---'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Location Details</span>
+                        <span className="text-slate-900 line-clamp-1">{getValueFromPath(item, mappedFields.address) || '---'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Coordinates</span>
+                        <span className="text-slate-900 font-mono">
+                          {getValueFromPath(item, mappedFields.latitude) || '?'}, {getValueFromPath(item, mappedFields.longitude) || '?'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -327,11 +344,11 @@ export default function StationImportPage() {
             <button
               disabled={isImporting}
               onClick={handleStartImport}
-              className="w-full rounded-2xl bg-emerald-500 py-4 font-bold text-[#0B0E14] shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:opacity-50"
+              className="w-full rounded-3xl bg-blue-600 py-5 font-bold text-white shadow-xl shadow-blue-600/20 transition-all hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-50 disabled:hover:translate-y-0"
             >
               {isImporting
-                ? 'Processing Bulk Import...'
-                : `Import ${jsonData.length} Stations into Neon DB`}
+                ? 'Processing Your Data...'
+                : `Import ${jsonData.length.toLocaleString()} Stations to Network`}
             </button>
           </div>
         )}
