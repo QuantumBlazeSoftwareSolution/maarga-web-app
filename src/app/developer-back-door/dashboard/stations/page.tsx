@@ -10,6 +10,17 @@ import {
   deleteStation,
   syncAllStationItems,
 } from '@/src/lib/actions/station';
+import { Station } from '@/src/lib/db/schema/station';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StationWithItems = Station & { 
+  items: {
+    itemId: string;
+    name: string;
+    itemType: string;
+    availability: string;
+  }[] 
+};
 
 // ── Neumorphism tokens ─────────────────────────────────
 const BASE = '#E1E4E9';
@@ -21,7 +32,7 @@ const nmSubtle = '3px 3px 8px #c0c3c8, -3px -3px 8px #ffffff';
 type StationItem = any; // Will match the DB schema
 
 export default function StationManagementPage() {
-  const [stations, setStations] = useState<StationItem[]>([]);
+  const [stations, setStations] = useState<StationWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Registration Form State
@@ -125,15 +136,9 @@ export default function StationManagementPage() {
     }
   };
 
-  const startEditing = (station: StationItem) => {
+  const startEditing = (station: StationWithItems) => {
     setEditingId(station.id);
-    setEditData({
-      name: station.name,
-      address: station.address,
-      longitude: station.longitude,
-      latitude: station.latitude,
-      type: station.type,
-    });
+    setEditData({ ...station });
   };
 
   return (
@@ -362,7 +367,23 @@ export default function StationManagementPage() {
                           </span>
                         </div>
                         <p className="text-[13px] font-medium text-slate-500 truncate">{station.address}</p>
-                        <span className="text-[11px] font-bold font-mono text-slate-400 block pt-0.5">
+                        
+                        {/* Station Items List */}
+                        {station.items && station.items.length > 0 && (
+                          <div className="flex flex-wrap gap-2 pt-2">
+                            {station.items.map((item) => (
+                              <span 
+                                key={item.itemId}
+                                style={{ boxShadow: nmPressed, background: BASE }}
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-bold text-violet-500 lowercase bg-white/30"
+                              >
+                                {item.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <span className="text-[11px] font-bold font-mono text-slate-400 block pt-1">
                           {station.latitude}, {station.longitude}
                         </span>
                       </div>
