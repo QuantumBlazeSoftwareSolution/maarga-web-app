@@ -65,13 +65,15 @@ export default function StationImportPage() {
         for (let i = 0; i < sampleSize; i++) {
           const feature = json[i] as StationFeature;
           if (feature.properties) {
-            Object.keys(feature.properties).forEach(k => uniqueKeys.add(`properties.${k}`));
+            Object.keys(feature.properties).forEach((k) =>
+              uniqueKeys.add(`properties.${k}`),
+            );
           }
           if (feature.geometry?.coordinates) {
             uniqueKeys.add('geometry.coordinates[0]');
             uniqueKeys.add('geometry.coordinates[1]');
           }
-          Object.keys(feature).forEach(k => {
+          Object.keys(feature).forEach((k) => {
             if (k !== 'properties' && k !== 'geometry') uniqueKeys.add(k);
           });
         }
@@ -80,8 +82,19 @@ export default function StationImportPage() {
         setAvailableKeys(keys);
 
         setMappedFields({
-          name: keys.find(k => k.toLowerCase().includes('name') || k.toLowerCase().includes('brand')) || '',
-          address: keys.find(k => k.toLowerCase().includes('address') || k.toLowerCase().includes('street') || k.toLowerCase().includes('amenity')) || '',
+          name:
+            keys.find(
+              (k) =>
+                k.toLowerCase().includes('name') ||
+                k.toLowerCase().includes('brand'),
+            ) || '',
+          address:
+            keys.find(
+              (k) =>
+                k.toLowerCase().includes('address') ||
+                k.toLowerCase().includes('street') ||
+                k.toLowerCase().includes('amenity'),
+            ) || '',
           longitude: 'geometry.coordinates[0]',
           latitude: 'geometry.coordinates[1]',
         });
@@ -89,15 +102,19 @@ export default function StationImportPage() {
         setStep('map');
         toast.success(`Loaded ${json.length} features successfully.`);
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Invalid JSON file');
+        toast.error(
+          error instanceof Error ? error.message : 'Invalid JSON file',
+        );
       }
     };
     reader.readAsText(file);
   };
 
   const getValueFromPath = (obj: StationFeature, path: string) => {
-    if (path === 'geometry.coordinates[0]') return obj.geometry?.coordinates?.[0]?.toString();
-    if (path === 'geometry.coordinates[1]') return obj.geometry?.coordinates?.[1]?.toString();
+    if (path === 'geometry.coordinates[0]')
+      return obj.geometry?.coordinates?.[0]?.toString();
+    if (path === 'geometry.coordinates[1]')
+      return obj.geometry?.coordinates?.[1]?.toString();
     if (path.startsWith('properties.')) {
       const key = path.split('.')[1];
       return (obj.properties as Record<string, unknown>)?.[key]?.toString();
@@ -107,7 +124,12 @@ export default function StationImportPage() {
   };
 
   const handleStartImport = async () => {
-    if (!mappedFields.name || !mappedFields.address || !mappedFields.longitude || !mappedFields.latitude) {
+    if (
+      !mappedFields.name ||
+      !mappedFields.address ||
+      !mappedFields.longitude ||
+      !mappedFields.latitude
+    ) {
       toast.error('All fields must be mapped.');
       return;
     }
@@ -119,15 +141,25 @@ export default function StationImportPage() {
       const errors = [];
 
       for (const item of jsonData) {
-        const name = getValueFromPath(item, mappedFields.name)?.trim() || 'Unknown Station';
-        const address = getValueFromPath(item, mappedFields.address)?.trim() || 'Sri Lanka';
+        const name =
+          getValueFromPath(item, mappedFields.name)?.trim() ||
+          'Unknown Station';
+        const address =
+          getValueFromPath(item, mappedFields.address)?.trim() || 'Sri Lanka';
         const lonStr = getValueFromPath(item, mappedFields.longitude);
         const latStr = getValueFromPath(item, mappedFields.latitude);
 
         const lon = parseFloat(lonStr || '0');
         const lat = parseFloat(latStr || '0');
 
-        if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+        if (
+          isNaN(lon) ||
+          isNaN(lat) ||
+          lon < -180 ||
+          lon > 180 ||
+          lat < -90 ||
+          lat > 90
+        ) {
           errors.push(`Invalid coordinates for station: ${name}`);
           continue;
         }
@@ -141,7 +173,10 @@ export default function StationImportPage() {
       }
 
       if (errors.length > 0) {
-        console.warn(`[IMPORT] Skipped ${errors.length} records`, errors.slice(0, 5));
+        console.warn(
+          `[IMPORT] Skipped ${errors.length} records`,
+          errors.slice(0, 5),
+        );
         toast.warning(`Skipped ${errors.length} malformed records.`);
       }
 
@@ -169,7 +204,11 @@ export default function StationImportPage() {
   return (
     <div
       className="min-h-screen font-sans selection:bg-blue-200"
-      style={{ background: '#E1E4E9', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
+      style={{
+        background: '#E1E4E9',
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      }}
     >
       {/* ── Top Navigation ─────────────────────────────── */}
       <nav
@@ -182,21 +221,48 @@ export default function StationImportPage() {
             style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
             className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition-all hover:text-slate-800 active:scale-95"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <div
             style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
             className="flex h-9 w-9 items-center justify-center rounded-xl"
           >
-            <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="h-4 w-4 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-700">Station Data Manager</span>
+            <span className="text-sm font-bold text-slate-700">
+              Station Data Manager
+            </span>
             <span className="ml-2 text-xs text-slate-400">
               / {step === 'upload' ? 'Upload File' : 'Map Columns'}
             </span>
@@ -223,7 +289,9 @@ export default function StationImportPage() {
                 >
                   {i + 1}
                 </div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${step === s ? 'text-slate-700' : 'text-slate-400'}`}>
+                <span
+                  className={`text-[10px] font-bold tracking-widest uppercase ${step === s ? 'text-slate-700' : 'text-slate-400'}`}
+                >
                   {s === 'upload' ? 'Upload' : 'Map'}
                 </span>
               </div>
@@ -234,11 +302,10 @@ export default function StationImportPage() {
 
       <FloatingNav />
       {/* ── Main ───────────────────────────────────────── */}
-      <main className="mx-auto max-w-3xl px-8 pb-12 pt-4">
-
+      <main className="mx-auto max-w-3xl px-8 pt-4 pb-12">
         {/* ── Step 1: Upload ─── */}
         {step === 'upload' && (
-          <div className="flex flex-col items-center justify-center pt-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-col items-center justify-center pt-16 duration-500">
             <div
               onClick={() => fileInputRef.current?.click()}
               style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
@@ -248,13 +315,26 @@ export default function StationImportPage() {
                 style={{ boxShadow: nmOuter, background: '#E1E4E9' }}
                 className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl text-blue-500 transition-transform group-hover:scale-110"
               >
-                <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                <svg
+                  className="h-10 w-10"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                  />
                 </svg>
               </div>
-              <h2 className="text-xl font-black text-slate-700">Upload Station Data</h2>
-              <p className="mt-3 text-sm font-medium text-slate-400 max-w-xs mx-auto leading-relaxed">
-                Drop your JSON file here or click to browse. Supports flat-array GeoJSON.
+              <h2 className="text-xl font-black text-slate-700">
+                Upload Station Data
+              </h2>
+              <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed font-medium text-slate-400">
+                Drop your JSON file here or click to browse. Supports flat-array
+                GeoJSON.
               </p>
               <input
                 type="file"
@@ -270,7 +350,7 @@ export default function StationImportPage() {
               className="mt-8 flex items-center gap-3 rounded-xl px-5 py-3"
             >
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></span>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <p className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
                 System ready for ingestion
               </p>
             </div>
@@ -280,7 +360,6 @@ export default function StationImportPage() {
         {/* ── Step 2: Map ─── */}
         {step === 'map' && (
           <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-500">
-
             {/* Field mapping card */}
             <div
               style={{ boxShadow: nmOuter, background: '#E1E4E9' }}
@@ -288,7 +367,9 @@ export default function StationImportPage() {
             >
               <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
                 <div>
-                  <h2 className="text-lg font-black text-slate-700">Link Columns</h2>
+                  <h2 className="text-lg font-black text-slate-700">
+                    Link Columns
+                  </h2>
                   <p className="mt-0.5 text-xs font-medium text-slate-400">
                     Match your file columns to the system fields.
                   </p>
@@ -297,38 +378,60 @@ export default function StationImportPage() {
                   style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
                   className="rounded-xl px-3 py-1.5"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
+                  <span className="text-[10px] font-black tracking-widest text-blue-500 uppercase">
                     Auto-mapped
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-8">
-                {(['name', 'address', 'longitude', 'latitude'] as const).map((field) => (
-                  <div key={field} className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                      {field}
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={mappedFields[field]}
-                        onChange={(e) => setMappedFields({ ...mappedFields, [field]: e.target.value })}
-                        style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
-                        className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300"
-                      >
-                        <option value="">Choose column…</option>
-                        {availableKeys.map((k) => (
-                          <option key={k} value={k}>{k}</option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                        </svg>
+                {(['name', 'address', 'longitude', 'latitude'] as const).map(
+                  (field) => (
+                    <div key={field} className="space-y-2">
+                      <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                        {field}
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={mappedFields[field]}
+                          onChange={(e) =>
+                            setMappedFields({
+                              ...mappedFields,
+                              [field]: e.target.value,
+                            })
+                          }
+                          style={{
+                            boxShadow: nmPressed,
+                            background: '#E1E4E9',
+                          }}
+                          className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="">Choose column…</option>
+                          {availableKeys.map((k) => (
+                            <option key={k} value={k}>
+                              {k}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </div>
 
@@ -338,12 +441,12 @@ export default function StationImportPage() {
               className="rounded-2xl p-8"
             >
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">
+                <h3 className="text-sm font-black tracking-widest text-slate-500 uppercase">
                   Preview
                 </h3>
                 <span
                   style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
-                  className="rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400"
+                  className="rounded-lg px-3 py-1 text-[10px] font-black tracking-widest text-slate-400 uppercase"
                 >
                   First 3 records
                 </span>
@@ -358,21 +461,30 @@ export default function StationImportPage() {
                   >
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Name</span>
-                        <span className="text-xs font-bold text-slate-700 line-clamp-1">
+                        <span className="mb-1 block text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Name
+                        </span>
+                        <span className="line-clamp-1 text-xs font-bold text-slate-700">
                           {getValueFromPath(item, mappedFields.name) || '—'}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Address</span>
-                        <span className="text-xs font-bold text-slate-700 line-clamp-1">
+                        <span className="mb-1 block text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Address
+                        </span>
+                        <span className="line-clamp-1 text-xs font-bold text-slate-700">
                           {getValueFromPath(item, mappedFields.address) || '—'}
                         </span>
                       </div>
                       <div>
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Coords</span>
+                        <span className="mb-1 block text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                          Coords
+                        </span>
                         <span className="font-mono text-xs font-bold text-slate-600">
-                          {getValueFromPath(item, mappedFields.latitude) || '?'}, {getValueFromPath(item, mappedFields.longitude) || '?'}
+                          {getValueFromPath(item, mappedFields.latitude) || '?'}
+                          ,{' '}
+                          {getValueFromPath(item, mappedFields.longitude) ||
+                            '?'}
                         </span>
                       </div>
                     </div>
@@ -389,7 +501,7 @@ export default function StationImportPage() {
                 boxShadow: isImporting ? nmPressed : nmOuter,
                 background: '#E1E4E9',
               }}
-              className="w-full rounded-2xl py-5 text-sm font-black uppercase tracking-widest text-blue-600 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+              className="w-full rounded-2xl py-5 text-sm font-black tracking-widest text-blue-600 uppercase transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
             >
               {isImporting
                 ? 'Processing…'

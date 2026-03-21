@@ -39,10 +39,7 @@ export async function createItem(item: ItemInsert) {
 /**
  * Updates an item
  */
-export async function updateItem(
-  id: string,
-  data: Partial<ItemInsert>
-) {
+export async function updateItem(id: string, data: Partial<ItemInsert>) {
   try {
     await db.update(itemsTable).set(data).where(eq(itemsTable.id, id));
     revalidatePath('/developer-back-door/dashboard/station-items');

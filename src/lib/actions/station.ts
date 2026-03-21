@@ -25,16 +25,19 @@ export async function bulkImportStations(stations: StationInsert[]) {
 
     for (let i = 0; i < stations.length; i += BATCH_SIZE) {
       const batch: StationInsert[] = stations.slice(i, i + BATCH_SIZE);
-      
+
       // Basic Deduplication: Filter out stations that already exist (same name AND location)
       // This is a simple check, for production we might want a spatial query
       const filteredBatch = [];
       for (const station of batch) {
-        const existing = await db.select()
+        const existing = await db
+          .select()
           .from(stationTable)
-          .where(sql`name = ${station.name} AND longitude = ${station.longitude} AND latitude = ${station.latitude}`)
+          .where(
+            sql`name = ${station.name} AND longitude = ${station.longitude} AND latitude = ${station.latitude}`,
+          )
           .limit(1);
-        
+
         if (existing.length === 0) {
           filteredBatch.push(station);
         } else {
@@ -46,14 +49,16 @@ export async function bulkImportStations(stations: StationInsert[]) {
         await createBatchStations(filteredBatch);
         importedCount += filteredBatch.length;
       }
-      
-      console.log(`[IMPORT] Progress: ${i + batch.length}/${stations.length} | Imported: ${importedCount} | Skipped: ${skippedCount}`);
+
+      console.log(
+        `[IMPORT] Progress: ${i + batch.length}/${stations.length} | Imported: ${importedCount} | Skipped: ${skippedCount}`,
+      );
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: `Successfully imported ${importedCount} stations. ${skippedCount > 0 ? `(Skipped ${skippedCount} duplicates)` : ''}`,
-      count: importedCount 
+      count: importedCount,
     };
   } catch (error) {
     console.error('[IMPORT ERROR]', error);
@@ -188,21 +193,24 @@ export async function syncAllStationItems() {
 
     for (let i = 0; i < inserts.length; i += BATCH_SIZE) {
       const batch = inserts.slice(i, i + BATCH_SIZE);
-      
+
       // Filter out existing ones to prevent primary key/unique clashes if any
-      // In this schema, we don't have a unique constraint on (stationId, itemId) yet, 
+      // In this schema, we don't have a unique constraint on (stationId, itemId) yet,
       // but let's be safe and check for existence or just insert if allowed.
       // Assuming we want to avoid duplicates:
       const filteredBatch = [];
       for (const ins of batch) {
-        const existing = await db.select()
+        const existing = await db
+          .select()
           .from(stationItemsTable)
-          .where(and(
-            eq(stationItemsTable.stationId, ins.stationId),
-            eq(stationItemsTable.itemId, ins.itemId)
-          ))
+          .where(
+            and(
+              eq(stationItemsTable.stationId, ins.stationId),
+              eq(stationItemsTable.itemId, ins.itemId),
+            ),
+          )
           .limit(1);
-        
+
         if (existing.length === 0) {
           filteredBatch.push(ins);
         }
@@ -212,21 +220,24 @@ export async function syncAllStationItems() {
         await db.insert(stationItemsTable).values(filteredBatch);
         totalInserted += filteredBatch.length;
       }
-      
-      console.log(`[SYNC] Progress: ${Math.min(i + BATCH_SIZE, inserts.length)}/${inserts.length} | New: ${totalInserted}`);
+
+      console.log(
+        `[SYNC] Progress: ${Math.min(i + BATCH_SIZE, inserts.length)}/${inserts.length} | New: ${totalInserted}`,
+      );
     }
 
     revalidatePath('/developer-back-door/dashboard/stations');
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: `Sync complete! Processed ${inserts.length} pairings. Added ${totalInserted} new records.`,
-      count: totalInserted 
+      count: totalInserted,
     };
   } catch (error) {
     console.error('[SYNC ERROR]', error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Unknown error during sync' 
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : 'Unknown error during sync',
     };
   }
 }

@@ -36,7 +36,9 @@ const getItemTypeLabel = (type: string) => {
 export default function StationItemsManagementPage() {
   const [items, setItems] = useState<StationItemDesc[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'all' | Item['itemType']>('all');
+  const [selectedTab, setSelectedTab] = useState<'all' | Item['itemType']>(
+    'all',
+  );
 
   // Registration Form State
   const [formData, setFormData] = useState<{
@@ -347,7 +349,8 @@ export default function StationItemsManagementPage() {
               className="rounded-2xl p-12 text-center"
             >
               <p className="text-sm font-bold text-slate-500">
-                No {selectedTab === 'all' ? '' : selectedTab} items registered. Try adding one!
+                No {selectedTab === 'all' ? '' : selectedTab} items registered.
+                Try adding one!
               </p>
             </div>
           ) : (

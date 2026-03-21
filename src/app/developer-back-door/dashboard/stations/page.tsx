@@ -13,13 +13,13 @@ import {
 import { Station } from '@/src/lib/db/schema/station';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type StationWithItems = Station & { 
+type StationWithItems = Station & {
   items: {
     itemId: string;
     name: string;
     itemType: string;
     availability: string;
-  }[] 
+  }[];
 };
 
 // ── Neumorphism tokens ─────────────────────────────────
@@ -34,7 +34,8 @@ type StationItem = any; // Will match the DB schema
 export default function StationManagementPage() {
   const [stations, setStations] = useState<StationWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Registration Form State
   const [formData, setFormData] = useState({
     name: '',
@@ -62,7 +63,7 @@ export default function StationManagementPage() {
 
   const handleSyncItems = async () => {
     const confirmSync = confirm(
-      'This will link ALL stations to their matching global items (Fuel/Gas/EV). This may take a few seconds. Proceed?'
+      'This will link ALL stations to their matching global items (Fuel/Gas/EV). This may take a few seconds. Proceed?',
     );
     if (!confirmSync) return;
 
@@ -84,7 +85,12 @@ export default function StationManagementPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.address || !formData.longitude || !formData.latitude) {
+    if (
+      !formData.name ||
+      !formData.address ||
+      !formData.longitude ||
+      !formData.latitude
+    ) {
       toast.error('All fields are required');
       return;
     }
@@ -101,7 +107,13 @@ export default function StationManagementPage() {
 
     if (res.success) {
       toast.success(res.message);
-      setFormData({ name: '', address: '', longitude: '', latitude: '', type: 'fuel' });
+      setFormData({
+        name: '',
+        address: '',
+        longitude: '',
+        latitude: '',
+        type: 'fuel',
+      });
       fetchStations();
     } else {
       toast.error(res.message);
@@ -110,7 +122,12 @@ export default function StationManagementPage() {
   };
 
   const handleUpdate = async (id: string) => {
-    if (!editData.name || !editData.address || !editData.longitude || !editData.latitude) {
+    if (
+      !editData.name ||
+      !editData.address ||
+      !editData.longitude ||
+      !editData.latitude
+    ) {
       toast.error('Fields cannot be empty');
       return;
     }
@@ -141,24 +158,57 @@ export default function StationManagementPage() {
     setEditData({ ...station });
   };
 
+  const filteredStations = stations.filter(
+    (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.address.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   return (
     <div
       className="min-h-screen font-sans selection:bg-blue-200"
-      style={{ background: BASE, fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
+      style={{
+        background: BASE,
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      }}
     >
       <FloatingNav />
 
       {/* ── Top Navigation ─────────────────────────────── */}
-      <nav className="sticky top-0 z-40 flex items-center justify-between px-8 py-4" style={{ background: BASE }}>
+      <nav
+        className="sticky top-0 z-40 flex items-center justify-between px-8 py-4"
+        style={{ background: BASE }}
+      >
         <div className="flex items-center gap-4">
-          <div style={{ boxShadow: nmSubtle, background: BASE }} className="flex h-9 w-9 items-center justify-center rounded-xl">
-            <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <div
+            style={{ boxShadow: nmSubtle, background: BASE }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+          >
+            <svg
+              className="h-4 w-4 text-emerald-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-700">Station Hub</span>
+            <span className="text-sm font-bold text-slate-700">
+              Station Hub
+            </span>
             <span className="ml-2 text-xs text-slate-400">/ Logistics</span>
           </div>
         </div>
@@ -166,95 +216,129 @@ export default function StationManagementPage() {
           onClick={handleSyncItems}
           disabled={isLoading}
           style={{ boxShadow: nmSubtle, background: BASE }}
-          className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-widest text-emerald-600 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap disabled:opacity-50"
+          className="rounded-xl px-5 py-2.5 text-xs font-black tracking-widest whitespace-nowrap text-emerald-600 uppercase transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
         >
           {isLoading ? 'Syncing...' : 'Sync All Items'}
         </button>
       </nav>
 
       {/* ── Main Layout ───────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-8 pb-12 pt-6 flex flex-col lg:flex-row gap-10">
-        
+      <main className="mx-auto flex max-w-7xl flex-col gap-10 px-8 pt-6 pb-12 lg:flex-row">
         {/* Left Column: Register Card */}
-        <div className="lg:w-1/3 flex-shrink-0">
-          <div style={{ boxShadow: nmOuter, background: BASE }} className="rounded-2xl p-8 sticky top-24">
+        <div className="flex-shrink-0 lg:w-1/3">
+          <div
+            style={{ boxShadow: nmOuter, background: BASE }}
+            className="sticky top-24 rounded-2xl p-8"
+          >
             <div className="mb-6">
-              <h2 className="text-lg font-black text-slate-700">Register Station</h2>
-              <p className="mt-1 text-xs font-medium text-slate-400 leading-relaxed">
+              <h2 className="text-lg font-black text-slate-700">
+                Register Station
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed font-medium text-slate-400">
                 Manually add a new station to the platform network.
               </p>
             </div>
 
             <form onSubmit={handleRegister} className="space-y-5">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Name</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                  Name
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   style={{ boxShadow: nmPressed, background: BASE }}
-                  className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300 transition-all placeholder-slate-400"
+                  className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
                   placeholder="e.g. Lanka IOC"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Address</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                  Address
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   style={{ boxShadow: nmPressed, background: BASE }}
-                  className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300 transition-all placeholder-slate-400"
+                  className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
                   placeholder="Street, City"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lat</label>
+                  <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                    Lat
+                  </label>
                   <input
                     type="text"
                     required
                     value={formData.latitude}
-                    onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, latitude: e.target.value })
+                    }
                     style={{ boxShadow: nmPressed, background: BASE }}
-                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300 transition-all font-mono placeholder-slate-400"
+                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 font-mono text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
                     placeholder="6.9271"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lng</label>
+                  <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                    Lng
+                  </label>
                   <input
                     type="text"
                     required
                     value={formData.longitude}
-                    onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, longitude: e.target.value })
+                    }
                     style={{ boxShadow: nmPressed, background: BASE }}
-                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300 transition-all font-mono placeholder-slate-400"
+                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 font-mono text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
                     placeholder="79.8612"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Station Type</label>
+                <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                  Station Type
+                </label>
                 <div className="relative">
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
                     style={{ boxShadow: nmPressed, background: BASE }}
-                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                    className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 transition-all outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     <option value="fuel">Fuel (Petrol/Diesel)</option>
                     <option value="gas">Gas Station</option>
                     <option value="ev">EV Charging</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -264,8 +348,11 @@ export default function StationManagementPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  style={{ boxShadow: isSubmitting ? nmPressed : nmOuter, background: BASE }}
-                  className="w-full rounded-xl py-4 text-sm font-black uppercase tracking-widest text-emerald-600 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+                  style={{
+                    boxShadow: isSubmitting ? nmPressed : nmOuter,
+                    background: BASE,
+                  }}
+                  className="w-full rounded-xl py-4 text-sm font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
                 >
                   {isSubmitting ? 'Registering...' : 'Register Station'}
                 </button>
@@ -275,40 +362,89 @@ export default function StationManagementPage() {
         </div>
 
         {/* Right Column: List */}
-        <div className="lg:w-2/3 flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col lg:w-2/3">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-700">All Stations</h2>
-            <div style={{ boxShadow: nmPressed, background: BASE }} className="flex items-center gap-2 rounded-xl px-4 py-2">
+            <div
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2"
+            >
               <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{stations.length} Total</span>
+              <span className="text-[11px] font-black tracking-widest text-slate-500 uppercase">
+                {searchQuery
+                  ? `${filteredStations.length} FOUND`
+                  : `${stations.length} TOTAL`}
+              </span>
             </div>
           </div>
 
+          {/* ── Search Bar ─────────────────────────────────────── */}
+          <div className="group relative mb-8">
+            <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 transition-colors group-focus-within:text-blue-500">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search station name or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="w-full appearance-none rounded-2xl border-0 py-4 pr-4 pl-11 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
+            />
+          </div>
+
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
+            <div className="flex items-center justify-center py-20">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
             </div>
-          ) : stations.length === 0 ? (
-            <div style={{ boxShadow: nmPressed, background: BASE }} className="rounded-2xl p-12 text-center">
-              <p className="text-sm font-bold text-slate-500">No stations registered yet.</p>
+          ) : filteredStations.length === 0 ? (
+            <div
+              style={{ boxShadow: nmPressed, background: BASE }}
+              className="rounded-2xl p-12 text-center"
+            >
+              <p className="text-sm font-bold text-slate-500">
+                {searchQuery
+                  ? `No stations matching "${searchQuery}"`
+                  : 'No stations registered yet.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {stations.map((station) => (
-                <div key={station.id} style={{ boxShadow: nmOuter, background: BASE }} className="rounded-2xl p-6 transition-all">
+              {filteredStations.map((station) => (
+                <div
+                  key={station.id}
+                  style={{ boxShadow: nmOuter, background: BASE }}
+                  className="rounded-2xl p-6 transition-all"
+                >
                   {editingId === station.id ? (
-                    <div className="space-y-4 animate-in fade-in duration-200">
+                    <div className="animate-in fade-in space-y-4 duration-200">
                       <div className="grid grid-cols-2 gap-4">
                         <input
                           type="text"
                           value={editData.name || ''}
-                          onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({ ...editData, name: e.target.value })
+                          }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
                         />
                         <select
                           value={editData.type || 'fuel'}
-                          onChange={(e) => setEditData({ ...editData, type: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({ ...editData, type: e.target.value })
+                          }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
                         >
@@ -320,7 +456,9 @@ export default function StationManagementPage() {
                       <input
                         type="text"
                         value={editData.address || ''}
-                        onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                        onChange={(e) =>
+                          setEditData({ ...editData, address: e.target.value })
+                        }
                         style={{ boxShadow: nmPressed, background: BASE }}
                         className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
                       />
@@ -328,30 +466,40 @@ export default function StationManagementPage() {
                         <input
                           type="text"
                           value={editData.latitude || ''}
-                          onChange={(e) => setEditData({ ...editData, latitude: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              latitude: e.target.value,
+                            })
+                          }
                           style={{ boxShadow: nmPressed, background: BASE }}
-                          className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none font-mono"
+                          className="w-full appearance-none rounded-xl border-0 px-4 py-2 font-mono text-sm font-bold text-slate-700 outline-none"
                         />
                         <input
                           type="text"
                           value={editData.longitude || ''}
-                          onChange={(e) => setEditData({ ...editData, longitude: e.target.value })}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              longitude: e.target.value,
+                            })
+                          }
                           style={{ boxShadow: nmPressed, background: BASE }}
-                          className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none font-mono"
+                          className="w-full appearance-none rounded-xl border-0 px-4 py-2 font-mono text-sm font-bold text-slate-700 outline-none"
                         />
                       </div>
                       <div className="flex gap-3 pt-2">
                         <button
                           onClick={() => handleUpdate(station.id)}
                           style={{ boxShadow: nmSubtle, background: BASE }}
-                          className="flex-1 rounded-xl py-2 text-xs font-black uppercase text-blue-600 transition-all hover:scale-[1.02] active:scale-95"
+                          className="flex-1 rounded-xl py-2 text-xs font-black text-blue-600 uppercase transition-all hover:scale-[1.02] active:scale-95"
                         >
                           Save Changes
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
                           style={{ boxShadow: nmSubtle, background: BASE }}
-                          className="flex-1 rounded-xl py-2 text-xs font-black uppercase text-slate-500 transition-all hover:scale-[1.02] active:scale-95"
+                          className="flex-1 rounded-xl py-2 text-xs font-black text-slate-500 uppercase transition-all hover:scale-[1.02] active:scale-95"
                         >
                           Cancel
                         </button>
@@ -359,23 +507,33 @@ export default function StationManagementPage() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-between gap-4">
-                      <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="min-w-0 flex-1 space-y-1.5">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-[17px] font-bold text-slate-700 tracking-tight truncate">{station.name}</h3>
-                          <span style={{ boxShadow: nmPressed, background: BASE }} className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 leading-none">
+                          <h3 className="truncate text-[17px] font-bold tracking-tight text-slate-700">
+                            {station.name}
+                          </h3>
+                          <span
+                            style={{ boxShadow: nmPressed, background: BASE }}
+                            className="rounded-full px-3 py-1 text-[9px] leading-none font-black tracking-widest text-slate-500 uppercase"
+                          >
                             {station.type}
                           </span>
                         </div>
-                        <p className="text-[13px] font-medium text-slate-500 truncate">{station.address}</p>
-                        
+                        <p className="truncate text-[13px] font-medium text-slate-500">
+                          {station.address}
+                        </p>
+
                         {/* Station Items List */}
                         {station.items && station.items.length > 0 && (
                           <div className="flex flex-wrap gap-2 pt-2">
                             {station.items.map((item) => (
-                              <span 
+                              <span
                                 key={item.itemId}
-                                style={{ boxShadow: nmPressed, background: BASE }}
-                                className="px-2 py-0.5 rounded-lg text-[10px] font-bold text-violet-500 lowercase bg-white/30"
+                                style={{
+                                  boxShadow: nmPressed,
+                                  background: BASE,
+                                }}
+                                className="rounded-lg bg-white/30 px-2 py-0.5 text-[10px] font-bold text-violet-500 lowercase"
                               >
                                 {item.name}
                               </span>
@@ -383,18 +541,28 @@ export default function StationManagementPage() {
                           </div>
                         )}
 
-                        <span className="text-[11px] font-bold font-mono text-slate-400 block pt-1">
+                        <span className="block pt-1 font-mono text-[11px] font-bold text-slate-400">
                           {station.latitude}, {station.longitude}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 shrink-0 pr-2">
+                      <div className="flex shrink-0 items-center gap-4 pr-2">
                         <button
                           onClick={() => startEditing(station)}
                           style={{ boxShadow: nmOuter, background: BASE }}
                           className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-blue-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
                         >
-                          <svg className="h-[18px] w-[18px] transition-transform group-active:scale-95" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          <svg
+                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
                           </svg>
                         </button>
                         <button
@@ -402,8 +570,18 @@ export default function StationManagementPage() {
                           style={{ boxShadow: nmOuter, background: BASE }}
                           className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-rose-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
                         >
-                          <svg className="h-[18px] w-[18px] transition-transform group-active:scale-95" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       </div>
