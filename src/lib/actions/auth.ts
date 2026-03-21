@@ -1,0 +1,77 @@
+'use server';
+
+import { db } from '@/src/lib/db';
+import { adminTable } from '@/src/lib/db/schema/admin';
+import { authenticationTable } from '@/src/lib/db/schema/authentication';
+import { eq, and } from 'drizzle-orm';
+import { sendAdminOtpEmail } from './emails';
+import { getAdminByEmail } from '../db/admin/read';
+import { deleteAuthentication } from '../db/authentication/delete';
+import { createAuthentication } from '../db/authentication/write';
+import { getAuthentication } from '../db/authentication/read';
+
+export async function sendOtp(email: string) {
+  try {
+    if (!email) {
+      return { success: false, message: 'Email is required' };
+    }
+
+    const admin = await getAdminByEmail(email);
+
+    if (!admin) {
+      return { success: false, message: 'Access denied' };
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await deleteAuthentication(admin.id);
+    const auth = await createAuthentication(admin.id, otp, expiresAt);
+
+    if (!auth) {
+      return { success: false, message: 'Failed to create authentication' };
+    }
+
+    sendAdminOtpEmail(email, otp);
+
+    console.log('------------------------------------------');
+    console.log(`[Admin AUTH] OTP for ${email}: ${otp}`);
+    console.log('------------------------------------------');
+
+    return { success: true, message: 'OTP sent successfully' };
+  } catch (error) {
+    console.error('Send OTP Error:', error);
+    return { success: false, message: 'Internal server error' };
+  }
+}
+
+export async function verifyOtp(email: string, otp: string) {
+  try {
+    if (!email || !otp) {
+      return { success: false, message: 'Email and OTP are required' };
+    }
+
+    const admin = await getAdminByEmail(email);
+
+    if (!admin) {
+      return { success: false, message: 'Access denied' };
+    }
+
+    const authEntry = await getAuthentication({ adminId: admin.id, otp });
+
+    if (!authEntry) {
+      return { success: false, message: 'Invalid OTP' };
+    }
+
+    if (new Date() > new Date(authEntry.expiresAt)) {
+      return { success: false, message: 'OTP has expired' };
+    }
+
+    await deleteAuthentication(admin.id);
+
+    return { success: true, message: 'Login successful' };
+  } catch (error) {
+    console.error('Verify OTP Error:', error);
+    return { success: false, message: 'Internal server error' };
+  }
+}

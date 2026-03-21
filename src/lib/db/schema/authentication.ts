@@ -16,3 +16,6 @@ export const authenticationTable = pgTable('authentication', {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+export type Authentication = typeof authenticationTable.$inferSelect;
+export type AuthenticationInsert = typeof authenticationTable.$inferInsert;

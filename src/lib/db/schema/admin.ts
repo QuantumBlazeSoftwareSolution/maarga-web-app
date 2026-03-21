@@ -3,7 +3,7 @@ import { adminRoleEnum, userStatusEnum } from './enum';
 
 export const adminTable = pgTable('admin', {
   id: uuid('id').defaultRandom().primaryKey(),
-  email: text('email').notNull(),
+  email: text('email').notNull().unique(),
   status: userStatusEnum('status').notNull().default('pending'),
   role: adminRoleEnum('role').notNull().default('admin'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
