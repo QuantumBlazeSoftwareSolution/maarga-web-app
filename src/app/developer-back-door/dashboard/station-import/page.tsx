@@ -53,25 +53,27 @@ export default function StationImportPage() {
         }
 
         setJsonData(json as StationFeature[]);
-
-        // Extract all nested keys from properties and geometry
-        const first = json[0] as StationFeature;
-        const keys: string[] = [];
-
-        if (first.properties) {
-          Object.keys(first.properties).forEach((k) =>
-            keys.push(`properties.${k}`),
-          );
+        
+        // Extract all unique keys from first 20 records for robust mapping
+        const sampleSize = Math.min(json.length, 20);
+        const uniqueKeys = new Set<string>();
+        
+        for (let i = 0; i < sampleSize; i++) {
+          const feature = json[i] as StationFeature;
+          if (feature.properties) {
+            Object.keys(feature.properties).forEach(k => uniqueKeys.add(`properties.${k}`));
+          }
+          if (feature.geometry?.coordinates) {
+            uniqueKeys.add('geometry.coordinates[0]'); // Lon
+            uniqueKeys.add('geometry.coordinates[1]'); // Lat
+          }
+          // General top-level keys
+          Object.keys(feature).forEach(k => {
+            if (k !== 'properties' && k !== 'geometry') uniqueKeys.add(k);
+          });
         }
-        if (first.geometry?.coordinates) {
-          keys.push('geometry.coordinates[0]'); // Lon
-          keys.push('geometry.coordinates[1]'); // Lat
-        }
-        // General top-level keys
-        Object.keys(first).forEach((k) => {
-          if (k !== 'properties' && k !== 'geometry') keys.push(k);
-        });
 
+        const keys = Array.from(uniqueKeys).sort();
         setAvailableKeys(keys);
 
         // Try to auto-guess some mappings
@@ -134,13 +136,43 @@ export default function StationImportPage() {
     setIsImporting(true);
 
     try {
-      // Transform data based on mapping
-      const stationsToImport = jsonData.map((item) => ({
-        name: getValueFromPath(item, mappedFields.name) || 'Unknown Station',
-        address: getValueFromPath(item, mappedFields.address) || 'Sri Lanka',
-        longitude: getValueFromPath(item, mappedFields.longitude) || '0',
-        latitude: getValueFromPath(item, mappedFields.latitude) || '0',
-      }));
+      // Transform and validate data based on mapping
+      const stationsToImport = [];
+      const errors = [];
+      
+      for (const item of jsonData) {
+        const name = getValueFromPath(item, mappedFields.name)?.trim() || 'Unknown Station';
+        const address = getValueFromPath(item, mappedFields.address)?.trim() || 'Sri Lanka';
+        const lonStr = getValueFromPath(item, mappedFields.longitude);
+        const latStr = getValueFromPath(item, mappedFields.latitude);
+        
+        const lon = parseFloat(lonStr || '0');
+        const lat = parseFloat(latStr || '0');
+
+        // Basic validation
+        if (isNaN(lon) || isNaN(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
+          errors.push(`Invalid coordinates for station: ${name}`);
+          continue;
+        }
+
+        stationsToImport.push({
+          name: name.slice(0, 255), // Basic length capping
+          address: address.slice(0, 500),
+          longitude: lon.toFixed(7), // Consistent precision
+          latitude: lat.toFixed(7),
+        });
+      }
+
+      if (errors.length > 0) {
+        console.warn(`[IMPORT] Skipped ${errors.length} records due to validation errors.`, errors.slice(0, 5));
+        toast.warning(`Skipped ${errors.length} malformed records.`);
+      }
+
+      if (stationsToImport.length === 0) {
+        toast.error('No valid records to import.');
+        setIsImporting(false);
+        return;
+      }
 
       const res = await bulkImportStations(stationsToImport);
 

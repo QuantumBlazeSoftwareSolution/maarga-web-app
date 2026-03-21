@@ -1,7 +1,9 @@
 'use server';
 
-import { StationInsert } from '@/src/lib/db/schema/station';
+import { StationInsert, stationTable } from '@/src/lib/db/schema/station';
 import { createBatchStations } from '../db/stations/write';
+import { db } from '@/src/lib/db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Server Action to bulk import stations with batching.
@@ -16,22 +18,39 @@ export async function bulkImportStations(stations: StationInsert[]) {
     // Process in batches of 100 to avoid Vercel timeout/ Neon limits
     const BATCH_SIZE = 100;
     let importedCount = 0;
+    let skippedCount = 0;
 
     for (let i = 0; i < stations.length; i += BATCH_SIZE) {
       const batch: StationInsert[] = stations.slice(i, i + BATCH_SIZE);
+      
+      // Basic Deduplication: Filter out stations that already exist (same name AND location)
+      // This is a simple check, for production we might want a spatial query
+      const filteredBatch = [];
+      for (const station of batch) {
+        const existing = await db.select()
+          .from(stationTable)
+          .where(sql`name = ${station.name} AND longitude = ${station.longitude} AND latitude = ${station.latitude}`)
+          .limit(1);
+        
+        if (existing.length === 0) {
+          filteredBatch.push(station);
+        } else {
+          skippedCount++;
+        }
+      }
 
-      await createBatchStations(batch);
-      importedCount += batch.length;
-
-      console.log(
-        `[IMPORT] Batch complete: ${importedCount}/${stations.length}`,
-      );
+      if (filteredBatch.length > 0) {
+        await createBatchStations(filteredBatch);
+        importedCount += filteredBatch.length;
+      }
+      
+      console.log(`[IMPORT] Progress: ${i + batch.length}/${stations.length} | Imported: ${importedCount} | Skipped: ${skippedCount}`);
     }
 
-    return {
-      success: true,
-      message: `Successfully imported ${importedCount} stations.`,
-      count: importedCount,
+    return { 
+      success: true, 
+      message: `Successfully imported ${importedCount} stations. ${skippedCount > 0 ? `(Skipped ${skippedCount} duplicates)` : ''}`,
+      count: importedCount 
     };
   } catch (error) {
     console.error('[IMPORT ERROR]', error);
