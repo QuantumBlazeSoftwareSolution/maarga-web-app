@@ -21,6 +21,7 @@ export async function getAuthentication({
       );
     return authEntry[0];
   } catch (error) {
+    console.error('Authentication read error:', error);
     return null;
   }
 }

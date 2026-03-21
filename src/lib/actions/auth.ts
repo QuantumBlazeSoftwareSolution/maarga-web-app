@@ -1,9 +1,5 @@
 'use server';
 
-import { db } from '@/src/lib/db';
-import { adminTable } from '@/src/lib/db/schema/admin';
-import { authenticationTable } from '@/src/lib/db/schema/authentication';
-import { eq, and } from 'drizzle-orm';
 import { sendAdminOtpEmail } from './emails';
 import { getAdminByEmail } from '../db/admin/read';
 import { deleteAuthentication } from '../db/authentication/delete';

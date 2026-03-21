@@ -24,7 +24,7 @@ export default function LoginPage() {
       } else {
         toast.error(res.message || 'Something went wrong');
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to connect to server');
     } finally {
       setIsLoading(false);

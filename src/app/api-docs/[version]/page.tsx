@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import 'swagger-ui-react/swagger-ui.css';
 import { useEffect, useState, use } from 'react';
+import Image from 'next/image';
 
 const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false });
 
@@ -12,7 +13,7 @@ interface ApiDocsPageProps {
 
 export default function ApiDocsPage({ params }: ApiDocsPageProps) {
   const { version } = use(params);
-  const [spec, setSpec] = useState<any>(null);
+  const [spec, setSpec] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     fetch(`/api/${version}/swagger`)
@@ -44,10 +45,11 @@ export default function ApiDocsPage({ params }: ApiDocsPageProps) {
           <span className="text-xs text-white/20 uppercase tracking-widest font-mono">
             {version === 'v1' ? 'Current Stable' : 'Archived'}
           </span>
-          <img src="/favicon.ico" alt="Maarga" className="h-8 w-8 opacity-50" />
+          <Image src="/favicon.ico" alt="Maarga" width={32} height={32} className="opacity-50" />
         </div>
       </div>
-      <SwaggerUI spec={spec} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <SwaggerUI spec={spec as any} />
     </div>
   );
 }

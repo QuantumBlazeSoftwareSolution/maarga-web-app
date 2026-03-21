@@ -39,6 +39,22 @@ function OTPContent() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const data = e.clipboardData.getData('text').slice(0, 6);
+    if (!/^\d+$/.test(data)) return;
+
+    const newOtp = [...otp];
+    data.split('').forEach((char, i) => {
+      if (i < 6) newOtp[i] = char;
+    });
+    setOtp(newOtp);
+
+    // Focus last filled or next empty
+    const lastIndex = Math.min(data.length - 1, 5);
+    const nextInput = document.getElementById(`otp-${lastIndex}`);
+    nextInput?.focus();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const otpValue = otp.join('');
@@ -51,12 +67,11 @@ function OTPContent() {
 
       if (res.success) {
         toast.success('Access granted. Welcome back.');
-        // Redirect to dev dashboard (to be created) or home for now
-        router.push('/'); 
+        router.push('/developer-back-door/dashboard'); 
       } else {
         toast.error(res.message || 'Invalid or expired OTP');
       }
-    } catch (err) {
+    } catch {
       toast.error('Connection failed');
     } finally {
       setIsLoading(false);
@@ -84,6 +99,7 @@ function OTPContent() {
                 value={digit}
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
+                onPaste={handlePaste}
                 className="h-14 w-full rounded-xl border border-white/5 bg-white/5 text-center text-xl font-bold text-emerald-500 transition-all focus:border-emerald-500/50 focus:bg-white/10 focus:outline-none focus:ring-0"
               />
             ))}

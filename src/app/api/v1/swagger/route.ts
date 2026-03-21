@@ -6,6 +6,7 @@ export async function GET() {
     const spec = await getApiDocs();
     return NextResponse.json(spec);
   } catch (error) {
+    console.error('Failed to generate API docs:', error);
     return NextResponse.json({ error: 'Failed to generate API docs' }, { status: 500 });
   }
 }

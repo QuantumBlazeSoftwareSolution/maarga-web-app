@@ -12,6 +12,7 @@ export async function getAdminByEmail(email: string): Promise<Admin | null> {
       .where(eq(adminTable.email, email));
     return admin[0];
   } catch (error) {
+    console.error('Admin read error:', error);
     return null;
   }
 }

@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface AdminOTPEmailProps {
   otp: string;
   email: string;
