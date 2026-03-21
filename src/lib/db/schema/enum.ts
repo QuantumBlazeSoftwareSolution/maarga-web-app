@@ -23,3 +23,32 @@ export const adminRoleEnum = pgEnum('admin_role', adminRoleEnumItems);
 // station types
 export const stationTypeEnumItems = ['fuel', 'gas', 'ev'] as const;
 export const stationTypeEnum = pgEnum('station_type', stationTypeEnumItems);
+
+export const districtEnumItems = [
+  'Colombo',
+  'Gampaha',
+  'Kalutara',
+  'Kandy',
+  'Matale',
+  'Nuwara Eliya',
+  'Galle',
+  'Matara',
+  'Hambantota',
+  'Jaffna',
+  'Kilinochchi',
+  'Mannar',
+  'Vavuniya',
+  'Mullaitivu',
+  'Batticaloa',
+  'Ampara',
+  'Trincomalee',
+  'Kurunegala',
+  'Puttalam',
+  'Anuradhapura',
+  'Polonnaruwa',
+  'Badulla',
+  'Moneragala',
+  'Ratnapura',
+  'Kegalle',
+] as const;
+export const districtEnum = pgEnum('district', districtEnumItems);

@@ -2,10 +2,7 @@ import { db } from '..';
 import { ItemInsert, itemsTable } from '../schema/items';
 import { eq } from 'drizzle-orm';
 
-export async function updateItem(
-  id: string,
-  data: ItemInsert,
-) {
+export async function updateItem(id: string, data: ItemInsert) {
   try {
     await db.update(itemsTable).set(data).where(eq(itemsTable.id, id));
     return { success: true, message: 'Item updated successfully' };
