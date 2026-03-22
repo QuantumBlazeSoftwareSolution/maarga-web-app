@@ -24,6 +24,10 @@ export const adminRoleEnum = pgEnum('admin_role', adminRoleEnumItems);
 export const stationTypeEnumItems = ['fuel', 'gas', 'ev'] as const;
 export const stationTypeEnum = pgEnum('station_type', stationTypeEnumItems);
 
+// report status
+export const reportStatusEnumItems = ['pending', 'approved', 'suspended'] as const;
+export const reportStatusEnum = pgEnum('report_status', reportStatusEnumItems);
+
 export const districtEnumItems = [
   'Colombo',
   'Gampaha',
