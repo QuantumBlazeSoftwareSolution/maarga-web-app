@@ -18,9 +18,40 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
 });
 
+const BASE_URL = 'https://maarga-web-app.vercel.app';
+
 export const metadata: Metadata = {
   title: 'Maarga - Fuel Station Finder',
   description: 'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
+  metadataBase: new URL(BASE_URL),
+  openGraph: {
+    title: 'Maarga - Fuel Station Finder',
+    description: 'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
+    url: BASE_URL,
+    siteName: 'Maarga',
+    type: 'website',
+    images: [
+      {
+        url: `${BASE_URL}/og-image.png`,
+        width: 1024,
+        height: 1024,
+        alt: 'Maarga - Fuel Station Finder',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Maarga - Fuel Station Finder',
+    description: 'Never Run on Empty Again. Find the nearest fuel stations.',
+    images: [`${BASE_URL}/og-image.png`],
+  },
+  icons: {
+    icon: '/og-image.png',
+    apple: '/apple-touch-icon.png',
+    other: [
+      { rel: 'icon', url: '/icon-192.png', sizes: '192x192' },
+    ],
+  },
 };
 
 export default function RootLayout({
