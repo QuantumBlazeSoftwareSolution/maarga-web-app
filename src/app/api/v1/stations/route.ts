@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/src/lib/proxy';
-import { getStations } from '@/src/lib/db/stations/read';
+import { getStationsEnriched } from '@/src/lib/db/stations/read';
 
 /**
  * @swagger
@@ -41,12 +41,47 @@ import { getStations } from '@/src/lib/db/stations/read';
  *                   updatedAt:
  *                     type: string
  *                     format: date-time
+ *                   items:
+ *                     type: array
+ *                     description: Fuel/product availability items for this station
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         itemId:
+ *                           type: string
+ *                         itemName:
+ *                           type: string
+ *                         itemType:
+ *                           type: string
+ *                         availability:
+ *                           type: string
+ *                           enum: [available, low, out]
+ *                   lastReport:
+ *                     type: object
+ *                     nullable: true
+ *                     description: Latest approved report for this station
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       queue:
+ *                         type: string
+ *                         enum: [no_queue, short, medium, long]
+ *                       message:
+ *                         type: string
+ *                         nullable: true
+ *                       status:
+ *                         type: string
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
  *       500:
  *         description: Server-side failure while retrieving stations
  */
 export const GET = withAuth(async (req: NextRequest) => {
   try {
-    const stations = await getStations();
+    const stations = await getStationsEnriched();
     return NextResponse.json(stations);
   } catch (error) {
     console.error('[API v1 Stations] Error:', error);
