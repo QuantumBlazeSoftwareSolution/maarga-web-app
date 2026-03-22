@@ -115,7 +115,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 w-full relative z-10 grid md:grid-cols-2 gap-16 items-center text-center md:text-left">
           <FadeIn>
             <div className="inline-block bg-[#0db368]/10 text-[#0db368] px-4 py-1.5 rounded-full text-[10px] font-black mb-8 border border-[#0db368]/20 uppercase tracking-[0.3em] animate-pulse">
-              Sri Lanka's #1 Fuel Finder App
+              Sri Lanka&apos;s #1 Fuel Finder App
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-black leading-[1.1] md:leading-[1] mb-8 text-[#1f2937] tracking-tighter">
               Find Fuel.<br />
