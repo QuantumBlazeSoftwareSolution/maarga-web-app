@@ -4,6 +4,7 @@ import { itemTypeEnum } from './enum';
 export const itemsTable = pgTable('items', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
+  sinhalaName: text('sinhala_name'),
   description: text('description'),
   itemType: itemTypeEnum('item_type').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),

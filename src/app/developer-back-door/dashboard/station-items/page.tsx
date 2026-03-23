@@ -43,10 +43,12 @@ export default function StationItemsManagementPage() {
   // Registration Form State
   const [formData, setFormData] = useState<{
     name: string;
+    sinhalaName: string;
     description: string;
     itemType: Item['itemType'];
   }>({
     name: '',
+    sinhalaName: '',
     description: '',
     itemType: 'fuel',
   });
@@ -82,13 +84,14 @@ export default function StationItemsManagementPage() {
     setIsSubmitting(true);
     const res = await createItem({
       name: formData.name,
+      sinhalaName: formData.sinhalaName || null,
       description: formData.description,
       itemType: formData.itemType,
     });
 
     if (res.success) {
       toast.success(res.message);
-      setFormData({ name: '', description: '', itemType: 'fuel' });
+      setFormData({ name: '', sinhalaName: '', description: '', itemType: 'fuel' });
       fetchItems();
     } else {
       toast.error(res.message);
@@ -127,6 +130,7 @@ export default function StationItemsManagementPage() {
     setEditingId(item.id);
     setEditData({
       name: item.name,
+      sinhalaName: item.sinhalaName,
       description: item.description,
       itemType: item.itemType,
     });
@@ -216,6 +220,22 @@ export default function StationItemsManagementPage() {
                   style={{ boxShadow: nmPressed, background: BASE }}
                   className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-violet-300"
                   placeholder="e.g. Petrol 92 Octane"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
+                  Sinhala Name <span className="normal-case tracking-normal text-slate-400">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.sinhalaName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, sinhalaName: e.target.value })
+                  }
+                  style={{ boxShadow: nmPressed, background: BASE }}
+                  className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-violet-300"
+                  placeholder="e.g. පැට්‍රල් 92"
                 />
               </div>
 
@@ -372,6 +392,17 @@ export default function StationItemsManagementPage() {
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
+                          placeholder="Item Name"
+                        />
+                        <input
+                          type="text"
+                          value={editData.sinhalaName || ''}
+                          onChange={(e) =>
+                            setEditData({ ...editData, sinhalaName: e.target.value })
+                          }
+                          style={{ boxShadow: nmPressed, background: BASE }}
+                          className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
+                          placeholder="සිංහල නම"
                         />
                         <select
                           value={editData.itemType || 'fuel'}
@@ -427,6 +458,11 @@ export default function StationItemsManagementPage() {
                           <h3 className="truncate text-[17px] font-bold tracking-tight text-slate-700">
                             {item.name}
                           </h3>
+                          {item.sinhalaName && (
+                            <span className="text-[13px] font-medium text-slate-400">
+                              {item.sinhalaName}
+                            </span>
+                          )}
                           <span
                             style={{ boxShadow: nmPressed, background: BASE }}
                             className="rounded-full px-3 py-1 text-[9px] leading-none font-black tracking-widest text-slate-500 uppercase"
