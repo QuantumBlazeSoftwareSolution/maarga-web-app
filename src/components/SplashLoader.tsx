@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function SplashLoader() {
     const [isVisible, setIsVisible] = useState(true);
-    const [isMounted, setIsMounted] = useState(false);
     const [shouldRender, setShouldRender] = useState(true);
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        setIsMounted(true);
 
         // Simulate high-fidelity progress
         const interval = setInterval(() => {
@@ -40,7 +39,7 @@ export default function SplashLoader() {
         };
     }, []);
 
-    if (!isMounted || !shouldRender) return null;
+    if (!shouldRender) return null;
 
     return (
         <div
@@ -54,7 +53,13 @@ export default function SplashLoader() {
                 {/* Logo with Cinematic Heartbeat and Liquid Shimmer */}
                 <div className={`relative transition-all duration-1000 ease-out transform ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
                     <div className="w-28 h-28 rounded-[35px] overflow-hidden shadow-premium relative group border border-gray-100 bg-white">
-                        <img src="/Maarga.png" alt="Maarga Logo" className="w-full h-full object-cover brightness-110 scale-110" />
+                        <Image
+                            src="/Maarga.png"
+                            alt="Maarga Logo"
+                            width={112}
+                            height={112}
+                            className="w-full h-full object-cover brightness-110 scale-110"
+                        />
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0db368]/10 to-transparent -translate-x-full animate-[liquid_3s_infinite_ease-in-out]"></div>
 
                         {/* Interior Light Pulse */}

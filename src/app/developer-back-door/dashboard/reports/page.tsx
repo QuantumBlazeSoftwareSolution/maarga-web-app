@@ -79,8 +79,24 @@ function AvailabilityIndicator({ type }: { type: string }) {
   );
 }
 
+interface ReportWithItems {
+  id: string;
+  stationName: string;
+  userName: string | null;
+  userEmail: string;
+  queue: string;
+  message: string | null;
+  status: string;
+  createdAt: Date;
+  items: {
+    itemName: string;
+    itemSinhalaName: string | null;
+    availability: string;
+  }[];
+}
+
 export default function ReportsMonitoring() {
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<ReportWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -89,7 +105,7 @@ export default function ReportsMonitoring() {
       try {
         const data = await getAllReports();
         setReports(data);
-      } catch (error) {
+      } catch (_error) {
         toast.error('Failed to load reports');
       } finally {
         setLoading(false);
@@ -227,7 +243,7 @@ export default function ReportsMonitoring() {
                         Item Availability
                       </span>
                     </div>
-                    {report.items.map((item: any, idx: number) => (
+                    {report.items.map((item: { itemName: string; availability: string }, idx: number) => (
                       <div
                         key={idx}
                         style={{ boxShadow: nmSubtle }}

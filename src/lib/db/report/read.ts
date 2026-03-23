@@ -23,7 +23,7 @@ export async function getStationLastConfirmedReport(
       .limit(1);
 
     return report[0];
-  } catch (error) {
+  } catch {
     return {} as Report;
   }
 }
