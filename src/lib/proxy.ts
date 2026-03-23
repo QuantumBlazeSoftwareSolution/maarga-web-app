@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export type ApiHandler = (
   req: NextRequest,
-  params?: any,
+  params?: unknown,
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -10,7 +10,7 @@ export type ApiHandler = (
  * This is preferred over middleware.ts in this architecture.
  */
 export function withAuth(handler: ApiHandler) {
-  return async (req: NextRequest, context?: any) => {
+  return async (req: NextRequest, context?: unknown) => {
     try {
       const apiKey = req.headers.get('X-API-KEY');
 

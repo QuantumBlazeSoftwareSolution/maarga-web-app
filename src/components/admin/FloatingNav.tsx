@@ -2,6 +2,16 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Upload,
+  MapPin,
+  Fuel,
+  BarChart,
+  BookOpen,
+  LogOut,
+  LucideIcon,
+} from 'lucide-react';
 
 // ── Neumorphism tokens (same as dashboard) ─────────────────────────────────
 const BASE = '#E1E4E9';
@@ -18,47 +28,53 @@ const DRAG_THRESHOLD = 8; // px — minimum movement before drag activates
 
 interface NavItem {
   label: string;
-  icon: string;
+  icon: LucideIcon;
   path: string;
   color: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: 'Dashboard',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-    path: '/developer-back-door/dashboard',
-    color: '#3B82F6',
+    label: 'Sign Out',
+    icon: LogOut,
+    path: '/developer-back-door/login',
+    color: '#EF4444',
   },
   {
-    label: 'Import Data',
-    icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12',
-    path: '/developer-back-door/dashboard/station-import',
-    color: '#6366F1',
-  },
-  {
-    label: 'Stations',
-    icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z',
-    path: '/developer-back-door/dashboard/stations',
+    label: 'API Docs',
+    icon: BookOpen,
+    path: '/api-docs',
     color: '#10B981',
   },
   {
+    label: 'Reports',
+    icon: BarChart,
+    path: '/developer-back-door/dashboard/reports',
+    color: '#F59E0B',
+  },
+  {
     label: 'Station Items',
-    icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+    icon: Fuel,
     path: '/developer-back-door/dashboard/station-items',
     color: '#8B5CF6',
   },
   {
-    label: 'API Docs',
-    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-    path: '/api-docs',
-    color: '#8B5CF6',
+    label: 'Stations',
+    icon: MapPin,
+    path: '/developer-back-door/dashboard/stations',
+    color: '#10B981',
   },
   {
-    label: 'Sign Out',
-    icon: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1',
-    path: '/developer-back-door/login',
-    color: '#EF4444',
+    label: 'Import Data',
+    icon: Upload,
+    path: '/developer-back-door/dashboard/station-import',
+    color: '#6366F1',
+  },
+  {
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    path: '/developer-back-door/dashboard',
+    color: '#3B82F6',
   },
 ];
 
@@ -309,18 +325,11 @@ export default function FloatingNav() {
                 flexShrink: 0,
               }}
             >
-              <svg
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke={item.color}
+              <item.icon
+                size={16}
+                color={item.color}
                 strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d={item.icon} />
-              </svg>
+              />
             </div>
             <span
               style={{

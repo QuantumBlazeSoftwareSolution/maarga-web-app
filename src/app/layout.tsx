@@ -54,6 +54,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -64,6 +66,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${oswald.variable} ${plusJakartaSans.variable} antialiased font-sans`}>
         <SplashLoader />
         {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

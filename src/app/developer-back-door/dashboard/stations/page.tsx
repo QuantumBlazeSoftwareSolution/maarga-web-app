@@ -28,8 +28,7 @@ const nmOuter = '6px 6px 14px #c0c3c8, -6px -6px 14px #ffffff';
 const nmPressed = 'inset 4px 4px 10px #c0c3c8, inset -4px -4px 10px #ffffff';
 const nmSubtle = '3px 3px 8px #c0c3c8, -3px -3px 8px #ffffff';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type StationItem = any; // Will match the DB schema
+type StationItem = any; // Will match the DB schema from the action response
 
 export default function StationManagementPage() {
   const [stations, setStations] = useState<StationWithItems[]>([]);
