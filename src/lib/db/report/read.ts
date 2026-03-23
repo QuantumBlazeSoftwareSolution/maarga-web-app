@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray } from 'drizzle-orm';
 import { db } from '..';
 import { Report, reportsTable } from '../schema/reports';
 import { stationTable } from '../schema/station';
@@ -69,6 +69,37 @@ export async function getAllReportsWithDetails() {
     }));
   } catch (error) {
     console.error('Error fetching reports:', error);
+    return [];
+  }
+}
+export async function getRecentReportsForConsensus(
+  stationId: string,
+  hours: number,
+) {
+  try {
+    const timeLimit = new Date();
+    timeLimit.setHours(timeLimit.getHours() - hours);
+
+    return await db
+      .select({
+        itemId: reportItemsTable.itemId,
+        availability: reportItemsTable.availability,
+        trustScore: usersTable.trustScore,
+      })
+      .from(reportsTable)
+      .innerJoin(
+        reportItemsTable,
+        eq(reportsTable.id, reportItemsTable.reportId),
+      )
+      .innerJoin(usersTable, eq(reportsTable.userId, usersTable.id))
+      .where(
+        and(
+          eq(reportsTable.stationId, stationId),
+          gte(reportsTable.createdAt, timeLimit),
+        ),
+      );
+  } catch (error) {
+    console.error('getRecentReportsForConsensus error:', error);
     return [];
   }
 }
