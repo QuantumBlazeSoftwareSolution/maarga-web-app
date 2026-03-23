@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function FadeIn({ children, delay = 0, className = '' }: { children: ReactNode, delay?: number, className?: string }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -63,8 +64,13 @@ export default function Home() {
       <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 bg-white shadow-premium border-b border-gray-100 ${scrolled ? 'py-1' : 'py-2'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           <div className="text-[#0db368] font-black text-3xl tracking-tighter flex items-center group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className=" h-22 md:h-26  rounded-xl overflow-hidden  transition-transform duration-300">
-              <img src="/Maarga.png" alt="Maarga Logo" className="w-full h-full object-cover brightness-130" />
+            <div className="h-22 md:h-26 rounded-xl overflow-hidden transition-transform duration-300 relative aspect-square">
+              <Image
+                src="/Maarga.png"
+                alt="Maarga Logo"
+                fill
+                className="object-contain brightness-130"
+              />
             </div>
           </div>
 
@@ -103,9 +109,12 @@ export default function Home() {
 
           {/* 3D Location Pin Background Element */}
           <div className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-7xl mx-auto px-6 pointer-events-none flex justify-center md:justify-end items-center opacity-40">
-            <img
+            <Image
               src="/premium_3d_location_pin_1774123284965.png"
               alt=""
+              width={600}
+              height={600}
+              priority
               className="w-[300px] h-[300px] md:w-[600px] md:h-[600px] object-contain animate-float blur-[2px] opacity-60"
             />
           </div>
@@ -152,7 +161,13 @@ export default function Home() {
 
               <div className="w-full h-full relative bg-[#f8faf2]">
                 <div className="absolute top-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl overflow-hidden shadow-2xl z-30 animate-float">
-                  <img src="/Maarga.png" alt="Maarga App" className="w-full h-full object-cover" />
+                  <Image
+                    src="/Maarga.png"
+                    alt="Maarga App"
+                    width={64}
+                    height={64}
+                    className="object-cover w-full h-full"
+                  />
                 </div>
                 <div className="absolute top-1/4 right-1/4 w-10 h-10 bg-white rounded-2xl shadow-xl flex items-center justify-center text-lg border border-gray-100 z-10">⛽</div>
                 <div className="absolute bottom-1/3 left-1/4 w-10 h-10 bg-[#0db368] rounded-2xl shadow-xl flex items-center justify-center text-lg text-white z-10">⛽</div>
@@ -255,8 +270,13 @@ export default function Home() {
                     </div>
                     {/* App Bar */}
                     <div className="px-6 py-4 flex items-center justify-between border-b border-gray-50 bg-white z-20">
-                      <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
-                        <img src="/Maarga.png" alt="M" className="w-full h-full object-cover" />
+                      <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-100 shadow-sm relative">
+                        <Image
+                          src="/Maarga.png"
+                          alt="M"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                       <div className="flex-1 px-4">
                         <div className="h-2 w-16 bg-gray-100 rounded-full"></div>
@@ -434,8 +454,13 @@ export default function Home() {
                   <div className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-10">Active Community Members</div>
                   <div className="flex justify-center -space-x-4 mb-8">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className={`w-14 h-14 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-xs font-bold overflow-hidden shadow-md`}>
-                        <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
+                      <div key={i} className={`w-14 h-14 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-xs font-bold overflow-hidden shadow-md relative`}>
+                        <Image
+                          src={`https://i.pravatar.cc/150?u=${i}`}
+                          alt="user"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     ))}
                   </div>
@@ -468,8 +493,14 @@ export default function Home() {
 
                   {/* Internal App Branding */}
                   <div className="flex flex-col items-center mb-10 relative z-10 animate-float">
-                    <div className="w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-3">
-                      <img src="/Maarga.png" alt="M" className="w-8 h-8 object-cover" />
+                    <div className="w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-3 relative overflow-hidden">
+                      <Image
+                        src="/Maarga.png"
+                        alt="M"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
                     </div>
                     <div className="h-1.5 w-16 bg-[#0db368]/20 rounded-full"></div>
                   </div>

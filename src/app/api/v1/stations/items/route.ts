@@ -43,7 +43,7 @@ import { NextRequest, NextResponse } from 'next/server';
  *                         format: uuid
  *                       availability:
  *                         type: string
- *                         enum: [in, out]
+ *                         enum: [available, low, out]
  *                       createdAt:
  *                         type: string
  *                         format: date-time
@@ -87,6 +87,8 @@ export const GET = withAuth(async (req: NextRequest) => {
   try {
     const { searchParams } = req.nextUrl;
     const stationId = searchParams.get('stationId');
+    console.log('[Stations/Items] ▶ stationId:', stationId);
+
     if (!stationId) {
       return NextResponse.json(
         { message: 'stationId is required' },
@@ -99,12 +101,15 @@ export const GET = withAuth(async (req: NextRequest) => {
       getStationLastConfirmedReport(stationId),
     ]);
 
+    console.log('[Stations/Items] ✅ items found:', stationItems.length);
+    console.log('[Stations/Items] lastReport:', lastConfirmedReport?.id ?? 'none');
+
     return NextResponse.json({
       stationItems,
       lastConfirmedReport,
     });
   } catch (error) {
-    console.error('[API v1 Stations Items] Error:', error);
+    console.error('[Stations/Items] ❌ Error:', error);
     return NextResponse.json(
       { message: 'Failed to fetch stations items' },
       { status: 500 },

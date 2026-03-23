@@ -16,6 +16,7 @@ export async function getItemsByStationId(
         createdAt: stationItemsTable.createdAt,
         updatedAt: stationItemsTable.updatedAt,
         itemName: itemsTable.name,
+        itemSinhalaName: itemsTable.sinhalaName,
         itemType: itemsTable.itemType,
       })
       .from(stationItemsTable)

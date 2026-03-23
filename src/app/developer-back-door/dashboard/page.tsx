@@ -520,6 +520,67 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </NmCard>
+
+              {/* Reports Monitor */}
+              <NmCard
+                className="p-6"
+                onClick={() =>
+                  router.push('/developer-back-door/dashboard/reports')
+                }
+              >
+                <div className="mb-4 flex items-start justify-between">
+                  <div
+                    style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  >
+                    <svg
+                      className="h-5 w-5 text-amber-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-slate-700"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M7 17L17 7M17 7H7M17 7v10"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-base font-bold text-slate-700">
+                  Reports Feed
+                </h3>
+                <p className="mt-1 text-xs font-medium text-slate-400">
+                  Community-sourced status logs
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <div
+                    style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
+                    className="h-1.5 w-full rounded-full overflow-hidden"
+                  >
+                    <div className="h-full w-full rounded-full bg-amber-400 opacity-80 animate-pulse" />
+                  </div>
+                </div>
+              </NmCard>
             </div>
 
             {/* ── Scenes row (bottom of left col) ─────────── */}

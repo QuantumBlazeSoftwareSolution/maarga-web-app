@@ -79,11 +79,11 @@ import { getStationsEnriched } from '@/src/lib/db/stations/read';
  *       500:
  *         description: Server-side failure while retrieving stations
  */
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(async (_req: NextRequest) => {
   try {
     const stations = await getStationsEnriched();
     return NextResponse.json(stations);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[API v1 Stations] Error:', error);
     return NextResponse.json(
       { message: 'Failed to fetch stations' },

@@ -1,6 +1,6 @@
 'use server';
 
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { db } from '../';
 import { Station, stationTable } from '../schema/station';
 import { stationItemsTable } from '../schema/station-items';

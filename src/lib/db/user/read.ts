@@ -28,3 +28,23 @@ export async function getUserById(id: string): Promise<UserById> {
     };
   }
 }
+
+export async function getUserByAuthId(authId: string): Promise<UserById> {
+  try {
+    const user = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.authId, authId));
+    return {
+      message: 'User find success.',
+      status: true,
+      user: user[0],
+    };
+  } catch (error) {
+    console.error('User find error:', error);
+    return {
+      status: false,
+      message: 'User cannot find.',
+    };
+  }
+}
