@@ -6,6 +6,7 @@ import { reportItemsTable } from '@/src/lib/db/schema/reports-items';
 import { usersTable } from '@/src/lib/db/schema/users';
 import { stationItemsTable } from '@/src/lib/db/schema/station-items';
 import { eq, and, gte } from 'drizzle-orm';
+import { getUserByAuthId } from '@/src/lib/db/user/read';
 
 const CONFIRMATION_THRESHOLD = 3;
 const CONSENSUS_WINDOW_HOURS = 6;
@@ -17,6 +18,79 @@ const QUEUE_MAP: Record<number, string> = {
   4: 'long',
 };
 
+/**
+ * @swagger
+ * /api/v1/reports/create:
+ *   post:
+ *     summary: Create a fuel status report
+ *     description: Submits a new status report for a fuel station. Uses a consensus engine to confirm availability if multiple users report similar statuses.
+ *     tags:
+ *       - Reports
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - stationId
+ *               - items
+ *               - userId
+ *             properties:
+ *               stationId:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *               userId:
+ *                 type: string
+ *                 description: The Google/Firebase Auth ID of the user (e.g. Zmol56pFGady1rty86tkZmphuuP2)
+ *                 example: "firebase_uid_123"
+ *               queue:
+ *                 type: integer
+ *                 description: 1=no_queue, 2=short, 3=medium, 4=long
+ *                 enum: [1, 2, 3, 4]
+ *                 example: 1
+ *               message:
+ *                 type: string
+ *                 description: Optional user message
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     itemId:
+ *                       type: string
+ *                       format: uuid
+ *                     availability:
+ *                       type: string
+ *                       enum: [available, low, out]
+ *     responses:
+ *       200:
+ *         description: Report submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 reportId:
+ *                   type: string
+ *                   format: uuid
+ *                 confirmedItemsCount:
+ *                   type: integer
+ *                 status:
+ *                   type: string
+ *                   enum: [pending, approved]
+ *       400:
+ *         description: Missing required fields (stationId, items, or authId)
+ *       404:
+ *         description: User not found (authId mismatch)
+ *       500:
+ *         description: Internal server error
+ */
 export const POST = withAuth(async (req: NextRequest) => {
   console.log('[Reports/Create] ▶ Request received');
 
@@ -24,7 +98,13 @@ export const POST = withAuth(async (req: NextRequest) => {
     const body = await req.json();
     console.log('[Reports/Create] Body:', JSON.stringify(body, null, 2));
 
-    const { stationId, queue, message, items, userId: bodyAuthId } = body as {
+    const {
+      stationId,
+      queue,
+      message,
+      items,
+      userId: bodyAuthId,
+    } = body as {
       stationId: string;
       queue: number;
       message?: string;
@@ -54,12 +134,9 @@ export const POST = withAuth(async (req: NextRequest) => {
 
     // 1. Look up user by their Google authId to get the real DB UUID
     console.log('[Reports/Create] Looking up user by authId...');
-    const [user] = await db
-      .select({ id: usersTable.id, trustScore: usersTable.trustScore })
-      .from(usersTable)
-      .where(eq(usersTable.authId, authId));
+    const user = await getUserByAuthId(authId);
 
-    if (!user) {
+    if (!user || !user.user) {
       console.warn('[Reports/Create] ❌ No user found for authId:', authId);
       return NextResponse.json(
         { message: 'User not found. Please sign in again.' },
@@ -67,9 +144,14 @@ export const POST = withAuth(async (req: NextRequest) => {
       );
     }
 
-    const userId = user.id;
-    const userTrustScore = parseFloat(user.trustScore ?? '1.0') || 1.0;
-    console.log('[Reports/Create] ✅ Found user:', userId, '| Trust score:', userTrustScore);
+    const userId = user.user.id;
+    const userTrustScore = parseFloat(user.user.trustScore ?? '1.0') || 1.0;
+    console.log(
+      '[Reports/Create] ✅ Found user:',
+      userId,
+      '| Trust score:',
+      userTrustScore,
+    );
 
     const queueValue = (QUEUE_MAP[queue] ?? 'no_queue') as
       | 'no_queue'
@@ -113,7 +195,10 @@ export const POST = withAuth(async (req: NextRequest) => {
         trustScore: usersTable.trustScore,
       })
       .from(reportsTable)
-      .innerJoin(reportItemsTable, eq(reportsTable.id, reportItemsTable.reportId))
+      .innerJoin(
+        reportItemsTable,
+        eq(reportsTable.id, reportItemsTable.reportId),
+      )
       .innerJoin(usersTable, eq(reportsTable.userId, usersTable.id))
       .where(
         and(
@@ -122,7 +207,10 @@ export const POST = withAuth(async (req: NextRequest) => {
         ),
       );
 
-    console.log('[Reports/Create] Recent rows for consensus:', recentRows.length);
+    console.log(
+      '[Reports/Create] Recent rows for consensus:',
+      recentRows.length,
+    );
 
     const tallies: Record<string, Record<string, number>> = {};
     for (const row of recentRows) {
@@ -143,7 +231,9 @@ export const POST = withAuth(async (req: NextRequest) => {
         tally[a] > tally[b] ? a : b,
       );
       const winningScore = tally[winningStatus];
-      console.log(`[Reports/Create] Item ${item.itemId}: top="${winningStatus}" score=${winningScore}`);
+      console.log(
+        `[Reports/Create] Item ${item.itemId}: top="${winningStatus}" score=${winningScore}`,
+      );
 
       if (winningScore >= CONFIRMATION_THRESHOLD) {
         await db
@@ -158,7 +248,9 @@ export const POST = withAuth(async (req: NextRequest) => {
               eq(stationItemsTable.itemId, item.itemId),
             ),
           );
-        console.log(`[Reports/Create] ✅ Confirmed item ${item.itemId} as "${winningStatus}"`);
+        console.log(
+          `[Reports/Create] ✅ Confirmed item ${item.itemId} as "${winningStatus}"`,
+        );
         confirmedCount++;
       }
     }
@@ -174,7 +266,10 @@ export const POST = withAuth(async (req: NextRequest) => {
         .update(usersTable)
         .set({ trustScore: newScore.toFixed(2) })
         .where(eq(usersTable.id, userId));
-      console.log('[Reports/Create] ✅ Approved report & rewarded user. New score:', newScore);
+      console.log(
+        '[Reports/Create] ✅ Approved report & rewarded user. New score:',
+        newScore,
+      );
     }
 
     console.log('[Reports/Create] ✅ Done. confirmedCount:', confirmedCount);

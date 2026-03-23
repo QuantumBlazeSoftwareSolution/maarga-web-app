@@ -43,7 +43,7 @@ import { NextRequest, NextResponse } from 'next/server';
  *                         format: uuid
  *                       availability:
  *                         type: string
- *                         enum: [in, out]
+ *                         enum: [available, low, out]
  *                       createdAt:
  *                         type: string
  *                         format: date-time
