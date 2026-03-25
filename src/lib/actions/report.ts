@@ -9,6 +9,7 @@ import { updateReportStatus } from '../db/report/update';
 import { updateStationItemAvailability } from '../db/stations/update';
 import { updateUserTrustScore } from '../db/user/update';
 import { getUserByAuthId } from '../db/user/read';
+import { getAllNewStationReports } from '../db/new-station/read';
 
 const CONFIRMATION_THRESHOLD = 3;
 const CONSENSUS_WINDOW_HOURS = 24;
@@ -163,4 +164,8 @@ async function runConsensusEngine(
         ? 'Consensus reached and records updated.'
         : 'Report saved. Awaiting more confirmations.',
   };
+}
+export async function getNewStationReports() {
+  const result = await getAllNewStationReports();
+  return result.data || [];
 }
