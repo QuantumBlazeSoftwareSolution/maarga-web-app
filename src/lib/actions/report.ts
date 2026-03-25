@@ -11,7 +11,7 @@ import { updateUserTrustScore } from '../db/user/update';
 import { getUserByAuthId } from '../db/user/read';
 
 const CONFIRMATION_THRESHOLD = 3;
-const CONSENSUS_WINDOW_HOURS = 6;
+const CONSENSUS_WINDOW_HOURS = 24;
 
 const QUEUE_MAP: Record<number, string> = {
   1: 'no_queue',
