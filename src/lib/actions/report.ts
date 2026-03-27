@@ -9,9 +9,11 @@ import { updateReportStatus } from '../db/report/update';
 import { updateStationItemAvailability } from '../db/stations/update';
 import { updateUserTrustScore } from '../db/user/update';
 import { getUserByAuthId } from '../db/user/read';
+import { getAllNewStationReports } from '../db/new-station/read';
+import { createNewStationReport } from '../db/new-station/write';
 
 const CONFIRMATION_THRESHOLD = 3;
-const CONSENSUS_WINDOW_HOURS = 6;
+const CONSENSUS_WINDOW_HOURS = 24;
 
 const QUEUE_MAP: Record<number, string> = {
   1: 'no_queue',
@@ -163,4 +165,48 @@ async function runConsensusEngine(
         ? 'Consensus reached and records updated.'
         : 'Report saved. Awaiting more confirmations.',
   };
+}
+export async function getNewStationReports() {
+  const result = await getAllNewStationReports();
+  return result.data || [];
+}
+
+/**
+ * Controller logic: Submits a report for a new station.
+ */
+export async function submitNewStationReportAction(data: {
+  authId: string;
+  latitude: string;
+  longitude: string;
+}) {
+  try {
+    const { authId, latitude, longitude } = data;
+
+    // 1. Validation & User Lookup
+    if (!authId || !latitude || !longitude) {
+      return { status: false, message: 'Missing required parameters.' };
+    }
+
+    const userRes = await getUserByAuthId(authId);
+    if (!userRes.status || !userRes.user) {
+      return { status: false, message: 'User not found.' };
+    }
+    const user = userRes.user;
+
+    // 2. Create New Station Report (DB Operation)
+    const report = await createNewStationReport({
+      userId: user.id,
+      latitude,
+      longitude,
+    });
+
+    return {
+      status: true,
+      message: 'New station location submitted successfully.',
+      reportId: report.id,
+    };
+  } catch (error) {
+    console.error('submitNewStationReportAction error:', error);
+    return { status: false, message: 'An internal error occurred.' };
+  }
 }

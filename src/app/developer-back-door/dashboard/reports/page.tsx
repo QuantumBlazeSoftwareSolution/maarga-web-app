@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { getAllReports } from '@/src/lib/actions/report';
+import { getAllReports, getNewStationReports } from '@/src/lib/actions/report';
 import FloatingNav from '@/src/components/admin/FloatingNav';
 
 const nmOuter = '6px 6px 14px #c0c3c8, -6px -6px 14px #ffffff';
@@ -15,11 +15,13 @@ function NmCard({
   className = '',
   pressed = false,
   onClick,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
   pressed?: boolean;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
@@ -27,6 +29,7 @@ function NmCard({
       style={{
         boxShadow: pressed ? nmPressed : nmOuter,
         background: '#E1E4E9',
+        ...style,
       }}
       className={`rounded-2xl transition-all duration-200 ${onClick ? 'cursor-pointer active:scale-[0.98]' : ''} ${className}`}
     >
@@ -95,16 +98,31 @@ interface ReportWithItems {
   }[];
 }
 
+interface NewStationReport {
+  id: string;
+  latitude: string;
+  longitude: string;
+  status: string;
+  createdAt: Date;
+  userName: string | null;
+}
+
 export default function ReportsMonitoring() {
-  const [reports, setReports] = useState<ReportWithItems[]>([]);
+  const [activeTab, setActiveTab] = useState<'fuel' | 'new-station'>('fuel');
+  const [fuelReports, setFuelReports] = useState<ReportWithItems[]>([]);
+  const [newStationReports, setNewStationReports] = useState<NewStationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     async function loadReports() {
       try {
-        const data = await getAllReports();
-        setReports(data);
+        const [fuelData, newData] = await Promise.all([
+          getAllReports(),
+          getNewStationReports(),
+        ]);
+        setFuelReports(fuelData);
+        setNewStationReports(newData as NewStationReport[]);
       } catch (_error) {
         toast.error('Failed to load reports');
       } finally {
@@ -166,36 +184,60 @@ export default function ReportsMonitoring() {
             </p>
           </div>
           
-          <NmCard className="px-4 py-2">
-            <span className="text-xs font-bold text-slate-500">
-              Total Reports:{' '}
-              <span className="text-blue-500 font-black">{reports.length}</span>
-            </span>
-          </NmCard>
+          <div className="flex items-center gap-4">
+            <NmCard 
+              className="flex p-1"
+              style={{ background: '#E1E4E9' }}
+            >
+              <button
+                onClick={() => setActiveTab('fuel')}
+                style={{ boxShadow: activeTab === 'fuel' ? nmPressed : 'none' }}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 ${activeTab === 'fuel' ? 'text-blue-500' : 'text-slate-500'}`}
+              >
+                FUEL STATUS
+              </button>
+              <button
+                onClick={() => setActiveTab('new-station')}
+                style={{ boxShadow: activeTab === 'new-station' ? nmPressed : 'none' }}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 ${activeTab === 'new-station' ? 'text-blue-500' : 'text-slate-500'}`}
+              >
+                NEW STATIONS
+              </button>
+            </NmCard>
+
+            <NmCard className="px-4 py-2">
+              <span className="text-xs font-bold text-slate-500">
+                Total:{' '}
+                <span className="text-blue-500 font-black">
+                  {activeTab === 'fuel' ? fuelReports.length : newStationReports.length}
+                </span>
+              </span>
+            </NmCard>
+          </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           </div>
-        ) : reports.length === 0 ? (
+        ) : (activeTab === 'fuel' ? fuelReports : newStationReports).length === 0 ? (
           <NmCard className="py-20 flex flex-col items-center justify-center text-center">
             <div
               style={{ boxShadow: nmPressed }}
               className="h-16 w-16 mb-6 rounded-full flex items-center justify-center text-2xl"
             >
-              📊
+              📋
             </div>
-            <h3 className="text-lg font-bold text-slate-700">No Reports Found</h3>
+            <h3 className="text-lg font-bold text-slate-700">No {activeTab === 'fuel' ? 'Fuel Status' : 'New Station'} Reports</h3>
             <p className="text-sm text-slate-400 max-w-xs mt-1">
-              User reports will appear here as soon as they are submitted from
-              the mobile app.
+              User submissions will appear here as soon as they are submitted from the mobile app.
             </p>
           </NmCard>
-        ) : (
+        ) : activeTab === 'fuel' ? (
           <div className="flex flex-col gap-6">
-            {reports.map((report) => (
+            {fuelReports.map((report) => (
               <NmCard key={report.id} className="p-6">
+                {/* ... existing fuel report render logic ... */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Station & User Info */}
                   <div className="flex-1 space-y-4">
@@ -272,6 +314,72 @@ export default function ReportsMonitoring() {
                     <div className="flex flex-col items-center gap-2">
                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
                         Consensus
+                      </span>
+                      <StatusBadge status={report.status} />
+                    </div>
+                  </div>
+                </div>
+              </NmCard>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {newStationReports.map((report) => (
+              <NmCard key={report.id} className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  {/* Location Info */}
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        style={{ boxShadow: nmSubtle }}
+                        className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center text-lg"
+                      >
+                        📍
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-base font-black text-slate-700 truncate">
+                          New Station Location
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                          <span className="text-xs font-bold text-slate-400">
+                            Suggested by {report.userName ?? 'Unknown User'}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-300">
+                            •
+                          </span>
+                          <span className="text-xs font-medium text-slate-400">
+                            {new Date(report.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{ boxShadow: nmPressed }}
+                      className="p-3 rounded-xl bg-slate-50/50 flex items-center justify-between"
+                    >
+                      <div className="text-[10px] font-black space-x-2 text-slate-500">
+                        <span className="bg-white/50 px-2 py-0.5 rounded">LAT: {parseFloat(report.latitude).toFixed(4)}</span>
+                        <span className="bg-white/50 px-2 py-0.5 rounded">LNG: {parseFloat(report.longitude).toFixed(4)}</span>
+                      </div>
+
+                      <a
+                        href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ boxShadow: nmSubtle }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black hover:scale-105 active:scale-95 transition-all"
+                      >
+                         VIEW ON MAP
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Right Actions */}
+                  <div className="flex items-center gap-6 shrink-0 lg:pl-6 border-l border-slate-200/50">
+                    <div className="flex flex-col items-center gap-2">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                        Approval Status
                       </span>
                       <StatusBadge status={report.status} />
                     </div>
