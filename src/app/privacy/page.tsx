@@ -81,7 +81,7 @@ export default function PrivacyPage() {
                                         <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">1</div>
                                         <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Information We Collect</h2>
                                     </div>
-                                    <div className="pl-16 space-y-4">
+                                    <div className="pl-8 md:pl-16 space-y-4">
                                         <p className="text-gray-600 leading-relaxed text-lg">
                                             We may collect the following information to provide you with the best experience:
                                         </p>
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
                                         <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">2</div>
                                         <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">How We Use Information</h2>
                                     </div>
-                                    <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                                    <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                                         <p>We use your information to:</p>
                                         <ul className="space-y-3">
                                             {[
@@ -128,7 +128,7 @@ export default function PrivacyPage() {
                                         <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">3</div>
                                         <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Data Sharing</h2>
                                     </div>
-                                    <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                                    <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                                         <p>
                                             We do not sell or share your personal data with third parties, except:
                                         </p>
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
                                         <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">4</div>
                                         <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Data Storage & Control</h2>
                                     </div>
-                                    <div className="pl-16 space-y-6 text-gray-600 leading-relaxed text-lg font-medium">
+                                    <div className="pl-8 md:pl-16 space-y-6 text-gray-600 leading-relaxed text-lg font-medium">
                                         <p>
                                             We store your data securely and take reasonable steps to protect it. You have full control over your data.
                                         </p>
@@ -173,7 +173,7 @@ export default function PrivacyPage() {
                                         <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">5</div>
                                         <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Third-Party Services</h2>
                                     </div>
-                                    <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                                    <div className="pl-8 md:pl-16 text-gray-600 leading-relaxed text-lg font-medium">
                                         <p>
                                             We use services such as Google Maps and Google Sign-In. These services may collect and process data according to their own policies.
                                         </p>
@@ -183,7 +183,7 @@ export default function PrivacyPage() {
                         </FadeIn>
 
                         <FadeIn delay={0.3}>
-                            <section className="bg-[#1f2937] p-12 rounded-[50px] text-white text-center relative overflow-hidden">
+                            <section className="bg-[#1f2937] p-8 md:p-12 rounded-[32px] md:rounded-[50px] text-white text-center relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-tr from-[#0db368]/20 to-transparent"></div>
                                 <div className="relative z-10">
                                     <h2 className="text-4xl font-black tracking-tight mb-6">Questions?</h2>
@@ -192,7 +192,7 @@ export default function PrivacyPage() {
                                     </p>
                                     <a
                                         href="mailto:maarga.app.lk@gmail.com"
-                                        className="inline-block py-4 px-10 bg-[#0db368] rounded-2xl font-black text-lg hover:bg-[#0db368]/90 transition-all shadow-xl shadow-[#0db368]/20 active:scale-95"
+                                        className="inline-block py-4 px-6 md:px-10 bg-[#0db368] rounded-2xl font-black text-sm md:text-lg hover:bg-[#0db368]/90 transition-all shadow-xl shadow-[#0db368]/20 active:scale-95 break-all md:break-normal"
                                     >
                                         maarga.app.lk@gmail.com
                                     </a>
