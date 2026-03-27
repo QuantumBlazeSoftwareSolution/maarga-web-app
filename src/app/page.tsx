@@ -107,18 +107,6 @@ export default function Home() {
           <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] animate-float opacity-30 blur-3xl bg-[#0db368]"></div>
           <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] animate-float-delayed opacity-20 blur-[100px] bg-[#0db368]"></div>
 
-          {/* 3D Location Pin Background Element */}
-          <div className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-7xl mx-auto px-6 pointer-events-none flex justify-center md:justify-end items-center opacity-40">
-            <Image
-              src="/premium_3d_location_pin_1774123284965.png"
-              alt=""
-              width={600}
-              height={600}
-              priority
-              className="w-[300px] h-[300px] md:w-[600px] md:h-[600px] object-contain animate-float blur-[2px] opacity-60"
-            />
-          </div>
-          <div className="absolute inset-0 hero-bg-map opacity-10"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 w-full relative z-10 grid md:grid-cols-2 gap-16 items-center text-center md:text-left">
@@ -449,24 +437,40 @@ export default function Home() {
             <FadeIn delay={0.3}>
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#0db368]/20 to-transparent rounded-full blur-3xl opacity-30 animate-pulse"></div>
-                <div className="relative glass p-10 rounded-[40px] shadow-premium border border-white/50 text-center">
-                  <div className="text-6xl font-black text-[#0db368] mb-4 tracking-tighter">50K+</div>
-                  <div className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-10">Active Community Members</div>
-                  <div className="flex justify-center -space-x-4 mb-8">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className={`w-14 h-14 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-xs font-bold overflow-hidden shadow-md relative`}>
-                        <Image
-                          src={`https://i.pravatar.cc/150?u=${i}`}
-                          alt="user"
-                          fill
-                          className="object-cover"
-                        />
+                <div className="relative glass p-6 md:p-12 rounded-[40px] md:rounded-[50px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border border-white/60 text-center overflow-hidden group">
+                  {/* Digital Grid Background */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0db368 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+                  <div className="relative z-10">
+                    <div className="flex flex-col items-center mb-8 md:mb-10">
+                      <div className="relative mb-4 md:mb-6">
+                        <div className="text-[80px] md:text-[120px] font-black text-[#0db368]/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 tracking-tighter select-none">900</div>
+                        <div className="text-5xl md:text-8xl font-black text-[#1f2937] tracking-tighter relative">900<span className="text-[#0db368]">+</span></div>
                       </div>
-                    ))}
+                      <div className="bg-[#0db368]/10 text-[#0db368] px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-[#0db368]/20 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#0db368] rounded-full animate-pulse"></span>
+                        Verified Fuel Stations
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-8 md:mb-12">
+                      {[
+                        { label: 'Ceypetco', count: '540', color: '#ce1126' },
+                        { label: 'Lanka IOC', count: '310', color: '#00529b' },
+                        { label: 'Sinopec', count: '65', color: '#ff6600' },
+                        { label: 'Others', count: '20', color: '#6b7280' }
+                      ].map((brand, i) => (
+                        <div key={i} className="bg-white/50 border border-gray-100 p-4 rounded-2xl md:rounded-3xl transition-all hover:shadow-md hover:-translate-y-1 group/item text-left flex justify-between items-center sm:block">
+                          <div className="flex items-center gap-2 mb-0 sm:mb-1">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brand.color }}></div>
+                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{brand.label}</div>
+                          </div>
+                          <div className="text-xl font-black text-[#1f2937] tracking-tight">{brand.count}<span className="text-xs text-gray-300 ml-1 font-bold sm:inline">STATIONS</span></div>
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
-                  <button className="w-full bg-[#1f2937] text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-colors shadow-xl">
-                    Join the Community
-                  </button>
                 </div>
               </div>
             </FadeIn>
@@ -615,8 +619,8 @@ export default function Home() {
               {/* <Link href="#how-it-works" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Process</Link> */}
               <Link href="#community" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Community</Link>
               {/* <Link href="#" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Safety</Link> */}
-              <Link href="#" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Privacy</Link>
-              <Link href="#" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Terms</Link>
+              <Link href="/terms" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Privacy</Link>
+              <Link href="/terms" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Terms</Link>
             </nav>
 
             <div className="flex justify-center gap-10 mb-16">
