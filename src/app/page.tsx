@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Megaphone } from 'lucide-react';
 
 function FadeIn({ children, delay = 0, className = '' }: { children: ReactNode, delay?: number, className?: string }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -81,9 +82,32 @@ export default function Home() {
             <Link href="#community" className="hover:text-[#0db368] transition-colors">Community</Link>
           </nav>
 
-          <Link href="#download" className="hidden md:inline-block bg-[#1f2937] text-white px-8 py-3 rounded-xl font-black shadow-xl hover:bg-black hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-widest">
-            Download App
-          </Link>
+          <div className="hidden md:flex items-center gap-4">
+            <Link href="#download" className="h-12 flex items-center bg-[#1f2937] text-white px-8 rounded-xl font-black shadow-xl hover:bg-black hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-widest">
+              Download App
+            </Link>
+
+            {/* Announcement Link - Repositioned & Resized with Premium 3D Icon */}
+            <Link
+              href="/announcements"
+              className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#0db368]/10 hover:bg-[#0db368]/20 transition-all group relative overflow-hidden active:scale-95 shadow-sm border border-[#0db368]/20"
+              title="Announcements"
+            >
+              <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-300">
+                {/* <Image
+                  src="/megaphone.png"
+                  alt="Updates"
+                  fill
+                  className="object-contain"
+                /> */}
+
+                <img src="/megaphone11.png" alt="Updates" className="object-contain" />
+              </div>
+              <div className="absolute top-0 left-0 w-full h-full bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+              {/* Optional Notification Dot for extra "UI pop" */}
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm ring-1 ring-red-500/20"></span>
+            </Link>
+          </div>
 
           <button className="md:hidden text-gray-800" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -97,6 +121,21 @@ export default function Home() {
             <Link href="#how-it-works" onClick={() => setIsMenuOpen(false)}>How it works</Link>
             <Link href="#features" onClick={() => setIsMenuOpen(false)}>Features</Link>
             <Link href="#community" onClick={() => setIsMenuOpen(false)}>Community</Link>
+            <Link
+              href="/announcements"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 text-[#0db368] pt-4 border-t border-gray-100"
+            >
+              <div className="relative w-5 h-5">
+                <Image
+                  src="/megaphone.png"
+                  alt="Updates"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              Announcements
+            </Link>
           </div>
         )}
       </header>
@@ -337,7 +376,7 @@ export default function Home() {
         <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent"></div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-24 gap-8">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-24 gap-8">
             <FadeIn className="md:w-1/2">
               <div className="inline-block bg-[#0db368]/10 text-[#0db368] px-5 py-2 rounded-full text-[10px] font-black mb-6 border border-[#0db368]/20 uppercase tracking-[0.4em]">
                 Intelligence
@@ -619,7 +658,7 @@ export default function Home() {
               {/* <Link href="#how-it-works" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Process</Link> */}
               <Link href="#community" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Community</Link>
               {/* <Link href="#" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Safety</Link> */}
-              <Link href="/terms" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Privacy</Link>
+              <Link href="/privacy" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Privacy</Link>
               <Link href="/terms" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Terms</Link>
             </nav>
 

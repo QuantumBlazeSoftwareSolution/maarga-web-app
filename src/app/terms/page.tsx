@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState, ReactNode } from 'react';
 
 function FadeIn({ children, delay = 0, className = '' }: { children: ReactNode, delay?: number, className?: string }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -22,22 +22,12 @@ function FadeIn({ children, delay = 0, className = '' }: { children: ReactNode, 
 }
 
 export default function TermsPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <div className="font-sans text-[#1f2937] overflow-x-hidden min-h-screen bg-white">
-      {/* --- Header Navigation (Simplified for subpages) --- */}
-      <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 bg-white shadow-premium border-b border-gray-100 ${scrolled ? 'py-1' : 'py-2'}`}>
-        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-          <Link href="/" className="text-[#0db368] font-black text-3xl tracking-tighter flex items-center group cursor-pointer">
+    <div className="min-h-screen bg-[#fafafa] text-[#1f2937] font-sans selection:bg-[#0db368]/20 selection:text-[#0db368]">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center group">
             <div className="h-22 md:h-26 rounded-xl overflow-hidden transition-transform duration-300 relative aspect-square">
               <Image
                 src="/Maarga.png"
@@ -47,217 +37,276 @@ export default function TermsPage() {
               />
             </div>
           </Link>
-
-          <nav className="hidden md:flex items-center gap-10 font-bold text-gray-500 text-[12px] uppercase tracking-[0.2em]">
-            <Link href="/" className="hover:text-[#0db368] transition-colors">Home</Link>
-          </nav>
-
-          <Link href="/#download" className="bg-[#1f2937] text-white px-8 py-3 rounded-xl font-black shadow-xl hover:bg-black hover:scale-105 transition-all text-xs uppercase tracking-widest">
-            Download App
+          <Link
+            href="/"
+            className="text-sm font-bold text-gray-500 hover:text-[#0db368] transition-colors flex items-center gap-2"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6" /></svg>
+            Back to Home
           </Link>
         </div>
       </header>
 
-      {/* --- Content Section --- */}
-      <main className="pt-40 pb-32 max-w-4xl mx-auto px-6">
-        <FadeIn>
-          <div className="inline-block bg-[#0db368]/10 text-[#0db368] px-4 py-1.5 rounded-full text-[10px] font-black mb-6 border border-[#0db368]/20 uppercase tracking-[0.3em]">
-            Legal
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black text-[#1f2937] mb-8 tracking-tighter">
-            Terms and <span className="text-[#0db368]">Conditions</span>
-          </h1>
-          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-16 border-b border-gray-100 pb-8">
-            Last Updated: March 27, 2026
-          </p>
-
-          <div className="prose prose-lg max-w-none text-gray-500 space-y-12">
-            <section>
-              <p className="text-lg font-medium leading-relaxed">
-                Welcome to Maarga. By using this mobile application, you agree to the following terms and conditions. Please read them carefully.
+      <main className="pt-40 pb-32 px-6">
+        <div className="max-w-4xl mx-auto">
+          <FadeIn>
+            <div className="mb-16">
+              <div className="inline-block px-4 py-1.5 rounded-full bg-[#0db368]/10 text-[#0db368] text-[10px] font-black uppercase tracking-[0.2em] mb-6 border border-[#0db368]/20">
+                Legal Documentation
+              </div>
+              <h1 className="text-5xl md:text-7xl font-black text-[#1f2937] tracking-tighter mb-6 leading-[0.9]">
+                Terms and <span className="text-[#0db368]">Conditions</span>
+              </h1>
+              <p className="text-gray-400 font-medium text-lg">
+                Last Updated: March 27, 2026
               </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">01</span>
-                Acceptance of Terms
-              </h2>
-              <p className="font-medium leading-relaxed">
-                By accessing or using the Maarga application, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the application.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">02</span>
-                Description of Service
-              </h2>
-              <p className="font-medium leading-relaxed">
-                Maarga is a community-driven mobile application that provides:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Fuel station locations</li>
-                <li>Fuel availability information</li>
-                <li>User-submitted reports</li>
-                <li>Navigation and map features</li>
-              </ul>
-              <p className="font-medium leading-relaxed text-sm italic text-gray-400">
-                The information provided is based on user contributions and may not always be accurate.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">03</span>
-                User Responsibilities
-              </h2>
-              <p className="font-medium leading-relaxed">
-                By using this app, you agree:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>To provide accurate and honest fuel reports</li>
-                <li>Not to submit false or misleading information</li>
-                <li>Not to misuse the platform for harmful activities</li>
-                <li>To respect other users and the community</li>
-              </ul>
-              <p className="font-medium leading-relaxed">
-                Any misuse may result in account suspension or termination.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">04</span>
-                Accuracy of Information
-              </h2>
-              <p className="font-medium leading-relaxed">
-                Maarga does not guarantee:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Real-time accuracy of fuel availability</li>
-                <li>Correctness of user-submitted data</li>
-              </ul>
-              <p className="font-medium leading-relaxed">
-                Users should verify information independently before making decisions.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">05</span>
-                Location Data
-              </h2>
-              <p className="font-medium leading-relaxed">
-                The app may collect and use your location to:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Show nearby fuel stations</li>
-                <li>Improve user experience</li>
-              </ul>
-              <p className="font-medium leading-relaxed">
-                By using the app, you consent to location access. You can disable this in your device settings.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">06</span>
-                Third-Party Services
-              </h2>
-              <p className="font-medium leading-relaxed">
-                Maarga may use third-party services such as:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Google Maps for map display</li>
-                <li>Google Sign-In for authentication</li>
-              </ul>
-              <p className="font-medium leading-relaxed">
-                These services are subject to their own terms and privacy policies.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">07</span>
-                Limitation of Liability
-              </h2>
-              <p className="font-medium leading-relaxed">
-                Maarga is not responsible for:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Incorrect fuel information</li>
-                <li>Delays or unavailability of fuel</li>
-                <li>Any losses, damages, or inconvenience caused</li>
-              </ul>
-              <p className="font-medium leading-relaxed font-bold text-[#1f2937]">
-                Use the app at your own risk.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">08</span>
-                Account & Access
-              </h2>
-              <p className="font-medium leading-relaxed">
-                We reserve the right to:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 font-medium">
-                <li>Suspend or terminate accounts</li>
-                <li>Restrict access to certain features</li>
-              </ul>
-              <p className="font-medium leading-relaxed">
-                Especially in cases of abuse or violation of terms.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">09</span>
-                Updates & Changes
-              </h2>
-              <p className="font-medium leading-relaxed">
-                We may update these Terms at any time. Continued use of the app means you accept the updated terms.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">10</span>
-                Privacy
-              </h2>
-              <p className="font-medium leading-relaxed">
-                Your data will be handled according to our Privacy Policy. Please review it for more information.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-black text-[#1f2937] tracking-tight flex items-center gap-3">
-                <span className="text-[#0db368]/20 text-4xl">11</span>
-                Contact
-              </h2>
-              <p className="font-medium leading-relaxed">
-                If you have questions or concerns, contact us at:
-              </p>
-              <p className="font-black text-[#0db368] text-xl">
-                maarga.app.lk@gmail.com
-              </p>
-            </section>
-
-            <div className="pt-12 border-t border-gray-100 italic font-bold text-[#1f2937]">
-              By using Maarga, you agree to these Terms and Conditions.
             </div>
+          </FadeIn>
+
+          <div className="space-y-16">
+            <FadeIn delay={0.1}>
+              <section className="glass p-8 md:p-12 rounded-[40px] border border-white shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#0db368]/5 rounded-bl-[100px] -mr-8 -mt-8 group-hover:bg-[#0db368]/10 transition-colors"></div>
+                <p className="text-xl text-gray-600 leading-relaxed font-medium">
+                  Welcome to Maarga. By using this mobile application, you agree to the following terms and conditions. Please read them carefully.
+                </p>
+              </section>
+            </FadeIn>
+
+            <FadeIn delay={0.2}>
+              <div className="grid gap-12">
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">1</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Acceptance of Terms</h2>
+                  </div>
+                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>
+                      By accessing or using the Maarga application, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the application.
+                    </p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">2</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Description of Service</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>Maarga is a community-driven mobile application that provides:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Fuel station locations',
+                        'Fuel availability information',
+                        'User-submitted reports',
+                        'Navigation and map features'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#0db368]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-gray-500 italic mt-4 font-bold">The information provided is based on user contributions and may not always be accurate.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">3</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">User Responsibilities</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>By using this app, you agree to:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Provide accurate and honest fuel reports',
+                        'Not submit false or misleading information',
+                        'Not misuse the platform for harmful activities',
+                        'To respect other users and the community'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#0db368]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-[#ce1126] font-black mt-4 px-4 py-2 bg-red-50 rounded-xl inline-block">Any misuse may result in account suspension or termination.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">4</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Accuracy of Information</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>Maarga does not guarantee:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Real-time accuracy of fuel availability',
+                        'Correctness of user-submitted data'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#3b82f6]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="font-black text-[#1f2937]">Users should verify information independently before making decisions.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">5</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Location Data</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>The app may collect and use your location to:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Show nearby fuel stations',
+                        'Improve user experience'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#0db368]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p>By using the app, you consent to location access. You can disable this in your device settings.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">6</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Third-Party Services</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>Maarga may use third-party services such as:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Google Maps for map display',
+                        'Google Sign-In for authentication'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#f59e0b]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p>These services are subject to their own terms and privacy policies.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">7</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Limitation of Liability</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>Maarga is not responsible for:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Incorrect fuel information',
+                        'Delays or unavailability of fuel',
+                        'Any losses, damages, or inconvenience caused'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="font-black text-red-600 uppercase tracking-widest text-sm">Use the app at your own risk.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">8</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Account & Access</h2>
+                  </div>
+                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>We reserve the right to:</p>
+                    <ul className="space-y-3">
+                      {[
+                        'Suspend or terminate accounts',
+                        'Restrict access to certain features'
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-700 font-bold">
+                          <div className="w-2 h-2 rounded-full bg-[#1f2937]"></div>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <p>Especially in cases of abuse or violation of terms.</p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">9</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Updates & Changes</h2>
+                  </div>
+                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>
+                      We may update these Terms at any time. Continued use of the app means you accept the updated terms.
+                    </p>
+                  </div>
+                </section>
+
+                <section>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">10</div>
+                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Privacy</h2>
+                  </div>
+                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                    <p>
+                      Your data will be handled according to our <Link href="/privacy" className="text-[#0db368] font-bold underline">Privacy Policy</Link>. Please review it for more information.
+                    </p>
+                  </div>
+                </section>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.3}>
+              <section className="bg-[#1f2937] p-12 rounded-[50px] text-white text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#0db368]/20 to-transparent"></div>
+                <div className="relative z-10">
+                  <h2 className="text-4xl font-black tracking-tight mb-6">Contact</h2>
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-8">
+                    If you have questions or concerns, contact us at:
+                  </p>
+                  <a
+                    href="mailto:maarga.app.lk@gmail.com"
+                    className="inline-block py-4 px-10 bg-[#0db368] rounded-2xl font-black text-lg hover:bg-[#0db368]/90 transition-all shadow-xl shadow-[#0db368]/20 active:scale-95"
+                  >
+                    maarga.app.lk@gmail.com
+                  </a>
+                </div>
+              </section>
+            </FadeIn>
+
+            <FadeIn delay={0.4}>
+              <div className="pt-12 border-t border-gray-100 text-center">
+                <p className="text-[#1f2937] font-black text-lg italic">
+                  By using Maarga, you agree to these Terms and Conditions.
+                </p>
+              </div>
+            </FadeIn>
           </div>
-        </FadeIn>
+        </div>
       </main>
 
-      {/* --- Footer (Simple copyright) --- */}
-      <footer className="py-12 bg-white border-t border-gray-50 text-center">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-300">
-            © {new Date().getFullYear()} Maarga. Sri Lanka.
-          </div>
+      {/* Footer */}
+      <footer className="py-12 border-t border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-gray-400 font-bold uppercase tracking-[0.3em] text-[10px]">
+            © {new Date().getFullYear()} Maarga Sri Lanka. All Rights Reserved.
+          </p>
         </div>
       </footer>
     </div>
