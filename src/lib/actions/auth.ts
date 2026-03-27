@@ -28,7 +28,7 @@ export async function sendOtp(email: string) {
       return { success: false, message: 'Failed to create authentication' };
     }
 
-    sendAdminOtpEmail(email, otp);
+    await sendAdminOtpEmail(email, otp);
 
     console.log('------------------------------------------');
     console.log(`[Admin AUTH] OTP for ${email}: ${otp}`);
