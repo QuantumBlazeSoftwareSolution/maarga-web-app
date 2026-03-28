@@ -654,12 +654,13 @@ export default function Home() {
             </div>
 
             <nav className="flex flex-wrap justify-center gap-x-6 md:gap-x-10 gap-y-4 mb-12">
-              <Link href="#features" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Features</Link>
+              {/* <Link href="#features" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Features</Link> */}
               {/* <Link href="#how-it-works" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Process</Link> */}
-              <Link href="#community" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Community</Link>
+              {/* <Link href="#community" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Community</Link> */}
               {/* <Link href="#" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Safety</Link> */}
               <Link href="/privacy" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Privacy</Link>
               <Link href="/terms" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Terms</Link>
+              <Link href="/support" className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[#0db368] transition-colors">Support</Link>
             </nav>
 
             <div className="flex justify-center gap-10 mb-16">
