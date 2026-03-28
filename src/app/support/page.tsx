@@ -3,6 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState, ReactNode, useRef } from 'react';
+import {
+  Trash2, Lock, ShieldCheck, User, MessageSquare, HelpCircle,
+  Mail, MapPin, FileText, Clock, Ban, CheckCircle2, AlertTriangle,
+  ShieldAlert,
+} from 'lucide-react';
 
 function FadeIn({
   children,
@@ -44,39 +49,42 @@ function FadeIn({
 const SUPPORT_TOPICS = [
   {
     value: 'delete-account',
-    label: '🗑️ Delete My Account',
+    label: 'Delete My Account',
+    icon: <Trash2 size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: 'Permanently remove your Maarga account and all associated data.',
-    tag: 'Account',
+
   },
   {
     value: 'remove-data',
-    label: '🔒 Remove My Data',
+    label: 'Remove My Data',
+    icon: <Lock size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: 'Request deletion of specific personal data without deleting your account.',
-    tag: 'Data & Privacy',
+
   },
   {
     value: 'privacy-concern',
-    label: '🛡️ Privacy Concern',
+    label: 'Privacy Concern',
+    icon: <ShieldCheck size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: 'Report a privacy issue or ask about how your data is handled.',
-    tag: 'Data & Privacy',
+
   },
   {
     value: 'account-issue',
-    label: '👤 Account Issue',
+    label: 'Account Issue',
+    icon: <User size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: 'Problems logging in, account recovery, or profile issues.',
-    tag: 'Account',
   },
   {
     value: 'app-feedback',
-    label: '💬 App Feedback',
+    label: 'App Feedback',
+    icon: <MessageSquare size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: 'Share suggestions or report a bug in the Maarga app.',
-    tag: 'General',
   },
   {
     value: 'other',
-    label: '📬 Other Inquiry',
+    label: 'Other Inquiry',
+    icon: <HelpCircle size={14} className="inline-block mr-1.5 -mt-0.5" />,
     description: "Something else? We're here to help with anything.",
-    tag: 'General',
   },
 ];
 
@@ -84,14 +92,14 @@ type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function SupportPage() {
   const [selectedTopic, setSelectedTopic] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ appId: '', name: '', email: '', message: '' });
   const [status, setStatus] = useState<Status>('idle');
 
   const currentTopic = SUPPORT_TOPICS.find((t) => t.value === selectedTopic);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTopic || !form.name || !form.email || !form.message) return;
+    if (!selectedTopic || !form.appId || !form.name || !form.email || !form.message) return;
     setStatus('loading');
 
     // Simulate submission (replace with real API call / server action)
@@ -105,7 +113,7 @@ export default function SupportPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center group">
-            <div className="h-16 w-16 rounded-xl overflow-hidden transition-transform duration-300 relative">
+            <div className="h-22 md:h-26 rounded-xl overflow-hidden transition-transform duration-300 relative aspect-square">
               <Image
                 src="/Maarga.png"
                 alt="Maarga Logo"
@@ -159,21 +167,23 @@ export default function SupportPage() {
 
                 {status === 'success' ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center gap-6">
-                    <div className="w-20 h-20 bg-[#0db368]/10 rounded-full flex items-center justify-center text-4xl border border-[#0db368]/20">
-                      ✅
+                    <div className="w-20 h-20 bg-[#0db368]/10 rounded-full flex items-center justify-center border border-[#0db368]/20">
+                      <CheckCircle2 color="#0db368" size={36} />
                     </div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">
                       Request Submitted!
                     </h2>
                     <p className="text-gray-500 font-medium max-w-sm">
-                      We&apos;ve received your request and will respond to{' '}
+                      We&apos;ve received your request (App ID:{' '}
+                      <span className="text-[#0db368] font-black">{form.appId}</span>) and will
+                      respond to{' '}
                       <span className="text-[#0db368] font-black">{form.email}</span> within 48
                       hours.
                     </p>
                     <button
                       onClick={() => {
                         setStatus('idle');
-                        setForm({ name: '', email: '', message: '' });
+                        setForm({ appId: '', name: '', email: '', message: '' });
                         setSelectedTopic('');
                       }}
                       className="mt-2 py-3 px-8 bg-[#1f2937] text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
@@ -193,14 +203,13 @@ export default function SupportPage() {
                             key={topic.value}
                             type="button"
                             onClick={() => setSelectedTopic(topic.value)}
-                            className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 group relative overflow-hidden ${
-                              selectedTopic === topic.value
-                                ? 'border-[#0db368] bg-[#0db368]/5 shadow-md'
-                                : 'border-gray-100 bg-white hover:border-[#0db368]/40 hover:shadow-sm'
-                            }`}
+                            className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 group relative overflow-hidden ${selectedTopic === topic.value
+                              ? 'border-[#0db368] bg-[#0db368]/5 shadow-md'
+                              : 'border-gray-100 bg-white hover:border-[#0db368]/40 hover:shadow-sm'
+                              }`}
                           >
-                            <div className="text-sm font-black text-[#1f2937] mb-1">
-                              {topic.label}
+                            <div className="text-sm font-black text-[#1f2937] mb-1 flex items-center">
+                              {topic.icon}{topic.label}
                             </div>
                             <div className="text-[11px] text-gray-400 font-medium leading-snug">
                               {topic.description}
@@ -229,7 +238,7 @@ export default function SupportPage() {
                       (currentTopic.value === 'delete-account' ||
                         currentTopic.value === 'remove-data') && (
                         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-                          <div className="text-xl mt-0.5">⚠️</div>
+                          <div className="mt-0.5"><AlertTriangle color="#92400e" size={20} /></div>
                           <div>
                             <div className="text-sm font-black text-amber-800 mb-1">
                               Important Notice
@@ -242,6 +251,25 @@ export default function SupportPage() {
                           </div>
                         </div>
                       )}
+
+                    {/* App ID */}
+                    <div>
+                      <label
+                        htmlFor="support-appid"
+                        className="block text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-2"
+                      >
+                        App ID
+                      </label>
+                      <input
+                        id="support-appid"
+                        type="text"
+                        required
+                        value={form.appId}
+                        onChange={(e) => setForm({ ...form, appId: e.target.value })}
+                        placeholder="#123456"
+                        className="w-full px-4 py-3.5 rounded-2xl border-2 border-gray-100 bg-white text-[#1f2937] font-bold placeholder-gray-300 focus:outline-none focus:border-[#0db368] transition-colors text-sm"
+                      />
+                    </div>
 
                     {/* Name + Email */}
                     <div className="grid sm:grid-cols-2 gap-4">
@@ -310,6 +338,7 @@ export default function SupportPage() {
                       type="submit"
                       disabled={
                         !selectedTopic ||
+                        !form.appId ||
                         !form.name ||
                         !form.email ||
                         !form.message ||
@@ -410,17 +439,17 @@ export default function SupportPage() {
 
                     {/* Data Points */}
                     <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: 'Response Time', value: '48hrs', icon: '⏱️' },
-                        { label: 'Data Deleted In', value: '30 days', icon: '🔒' },
-                        { label: 'Encrypted Transit', value: 'Always', icon: '🛡️' },
-                        { label: 'Data Sold?', value: 'Never', icon: '🚫' },
-                      ].map((stat, i) => (
+                      {([
+                        { label: 'Response Time', value: '48hrs', icon: <Clock color="#0db368" size={18} /> },
+                        { label: 'Data Deleted In', value: '30 days', icon: <Lock color="#0db368" size={18} /> },
+                        { label: 'Encrypted Transit', value: 'Always', icon: <ShieldCheck color="#0db368" size={18} /> },
+                        { label: 'Data Sold?', value: 'Never', icon: <Ban color="#0db368" size={18} /> },
+                      ] as { label: string; value: string; icon: React.ReactNode }[]).map((stat, i) => (
                         <div
                           key={i}
                           className="bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors"
                         >
-                          <div className="text-lg mb-1">{stat.icon}</div>
+                          <div className="mb-1">{stat.icon}</div>
                           <div className="text-white font-black text-base tracking-tight">
                             {stat.value}
                           </div>
@@ -438,29 +467,29 @@ export default function SupportPage() {
                   <div className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
                     What data we collect
                   </div>
-                  {[
+                  {([
                     {
-                      icon: '📧',
+                      icon: <Mail color="#0db368" size={18} />,
                       label: 'Email Address',
                       detail: 'Via Google Sign-In only',
                       color: '#0db368',
                     },
                     {
-                      icon: '👤',
+                      icon: <User color="#3b82f6" size={18} />,
                       label: 'Basic Profile',
                       detail: 'Name & profile picture',
                       color: '#3b82f6',
                     },
                     {
-                      icon: '📍',
+                      icon: <MapPin color="#f59e0b" size={18} />,
                       label: 'Location',
                       detail: 'To show nearby stations',
                       color: '#f59e0b',
                     },
-                  ].map((item, i) => (
+                  ] as { icon: React.ReactNode; label: string; detail: string; color: string }[]).map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${item.color}15` }}
                       >
                         {item.icon}
@@ -498,8 +527,8 @@ export default function SupportPage() {
                     href="/privacy"
                     className="glass p-5 rounded-[24px] border border-white shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
                   >
-                    <div className="w-10 h-10 bg-[#0db368]/10 rounded-xl flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-                      🔒
+                    <div className="w-10 h-10 bg-[#0db368]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Lock color="#0db368" size={18} />
                     </div>
                     <div>
                       <div className="font-black text-[#1f2937] text-sm">Privacy Policy</div>
@@ -512,8 +541,8 @@ export default function SupportPage() {
                     href="/terms"
                     className="glass p-5 rounded-[24px] border border-white shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
                   >
-                    <div className="w-10 h-10 bg-[#3b82f6]/10 rounded-xl flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-                      📄
+                    <div className="w-10 h-10 bg-[#3b82f6]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <FileText color="#3b82f6" size={18} />
                     </div>
                     <div>
                       <div className="font-black text-[#1f2937] text-sm">Terms of Service</div>
@@ -530,28 +559,28 @@ export default function SupportPage() {
           {/* ── Bottom Trust Strip ── */}
           <FadeIn delay={0.3}>
             <div className="mt-20 grid sm:grid-cols-3 gap-6 text-center">
-              {[
+              {([
                 {
-                  icon: '🔐',
+                  icon: <ShieldAlert color="#0db368" size={36} />,
                   title: 'Encrypted in Transit',
                   desc: 'All data is encrypted using industry-standard TLS protocols.',
                 },
                 {
-                  icon: '🗑️',
+                  icon: <Trash2 color="#ef4444" size={36} />,
                   title: 'Right to Deletion',
                   desc: 'Request full account and data deletion at any time, no questions asked.',
                 },
                 {
-                  icon: '📬',
+                  icon: <Mail color="#3b82f6" size={36} />,
                   title: '48-Hour Response',
                   desc: 'Every support request is acknowledged and actioned within 48 hours.',
                 },
-              ].map((item, i) => (
+              ] as { icon: React.ReactNode; title: string; desc: string }[]).map((item, i) => (
                 <div
                   key={i}
                   className="glass p-8 rounded-[30px] border border-white shadow-sm hover:shadow-premium transition-all group"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform inline-block">
+                  <div className="mb-4 group-hover:scale-110 transition-transform inline-block">
                     {item.icon}
                   </div>
                   <h3 className="font-black text-[#1f2937] text-lg tracking-tight mb-2">
