@@ -126,7 +126,11 @@ export default function AdminDashboard() {
   return (
     <div
       className="min-h-screen font-sans selection:bg-blue-200"
-      style={{ background: '#E1E4E9', fontFamily: "var(--font-poppins), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
+      style={{
+        background: '#E1E4E9',
+        fontFamily:
+          "var(--font-poppins), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      }}
     >
       {/* ── Top Navigation ─────────────────────────────────────────────── */}
       <nav
@@ -575,9 +579,9 @@ export default function AdminDashboard() {
                 <div className="mt-4 flex gap-2">
                   <div
                     style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
-                    className="h-1.5 w-full rounded-full overflow-hidden"
+                    className="h-1.5 w-full overflow-hidden rounded-full"
                   >
-                    <div className="h-full w-full rounded-full bg-amber-400 opacity-80 animate-pulse" />
+                    <div className="h-full w-full animate-pulse rounded-full bg-amber-400 opacity-80" />
                   </div>
                 </div>
               </NmCard>

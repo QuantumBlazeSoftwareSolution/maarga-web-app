@@ -102,7 +102,10 @@ export const GET = withAuth(async (req: NextRequest) => {
     ]);
 
     console.log('[Stations/Items] ✅ items found:', stationItems.length);
-    console.log('[Stations/Items] lastReport:', lastConfirmedReport?.id ?? 'none');
+    console.log(
+      '[Stations/Items] lastReport:',
+      lastConfirmedReport?.id ?? 'none',
+    );
 
     return NextResponse.json({
       stationItems,

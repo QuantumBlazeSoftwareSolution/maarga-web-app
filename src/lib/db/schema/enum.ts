@@ -25,12 +25,24 @@ export const stationTypeEnumItems = ['fuel', 'gas', 'ev'] as const;
 export const stationTypeEnum = pgEnum('station_type', stationTypeEnumItems);
 
 // report status
-export const reportStatusEnumItems = ['pending', 'approved', 'suspended'] as const;
+export const reportStatusEnumItems = [
+  'pending',
+  'approved',
+  'suspended',
+] as const;
 export const reportStatusEnum = pgEnum('report_status', reportStatusEnumItems);
 
 // support status
-export const supportStatusEnumItems = ['pending', 'open', 'resolved', 'closed'] as const;
-export const supportStatusEnum = pgEnum('support_status', supportStatusEnumItems);
+export const supportStatusEnumItems = [
+  'pending',
+  'open',
+  'resolved',
+  'closed',
+] as const;
+export const supportStatusEnum = pgEnum(
+  'support_status',
+  supportStatusEnumItems,
+);
 
 export const districtEnumItems = [
   'Colombo',
@@ -61,7 +73,6 @@ export const districtEnumItems = [
 ] as const;
 export const districtEnum = pgEnum('district', districtEnumItems);
 
-
 export const supportTopicValueEnumItems = [
   'delete-account',
   'remove-data',
@@ -70,4 +81,7 @@ export const supportTopicValueEnumItems = [
   'app-feedback',
   'other',
 ] as const;
-export const supportTopicValueEnum = pgEnum('support_topic_value', supportTopicValueEnumItems);
+export const supportTopicValueEnum = pgEnum(
+  'support_topic_value',
+  supportTopicValueEnumItems,
+);

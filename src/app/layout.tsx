@@ -22,11 +22,13 @@ const BASE_URL = 'https://maarga-web-app.vercel.app';
 
 export const metadata: Metadata = {
   title: 'Maarga - Fuel Station Finder',
-  description: 'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
+  description:
+    'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
   metadataBase: new URL(BASE_URL),
   openGraph: {
     title: 'Maarga - Fuel Station Finder',
-    description: 'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
+    description:
+      'Never Run on Empty Again. Find the nearest fuel stations, check real-time availability, and get turn-by-turn directions instantly.',
     url: BASE_URL,
     siteName: 'Maarga',
     type: 'website',
@@ -48,9 +50,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/og-image.png',
     apple: '/apple-touch-icon.png',
-    other: [
-      { rel: 'icon', url: '/icon-192.png', sizes: '192x192' },
-    ],
+    other: [{ rel: 'icon', url: '/icon-192.png', sizes: '192x192' }],
   },
 };
 
@@ -63,7 +63,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${oswald.variable} ${plusJakartaSans.variable} antialiased font-sans`}>
+      <body
+        className={`${inter.variable} ${oswald.variable} ${plusJakartaSans.variable} font-sans antialiased`}
+      >
         <SplashLoader />
         {children}
         <Toaster position="top-center" richColors />
