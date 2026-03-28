@@ -80,7 +80,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">1</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Acceptance of Terms</h2>
                   </div>
-                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>
                       By accessing or using the Maarga application, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the application.
                     </p>
@@ -92,7 +92,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">2</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Description of Service</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>Maarga is a community-driven mobile application that provides:</p>
                     <ul className="space-y-3">
                       {[
@@ -116,7 +116,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">3</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">User Responsibilities</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>By using this app, you agree to:</p>
                     <ul className="space-y-3">
                       {[
@@ -140,7 +140,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">4</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Accuracy of Information</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>Maarga does not guarantee:</p>
                     <ul className="space-y-3">
                       {[
@@ -162,7 +162,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">5</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Location Data</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>The app may collect and use your location to:</p>
                     <ul className="space-y-3">
                       {[
@@ -184,7 +184,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">6</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Third-Party Services</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>Maarga may use third-party services such as:</p>
                     <ul className="space-y-3">
                       {[
@@ -206,7 +206,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">7</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Limitation of Liability</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>Maarga is not responsible for:</p>
                     <ul className="space-y-3">
                       {[
@@ -229,7 +229,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">8</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Account & Access</h2>
                   </div>
-                  <div className="pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 space-y-4 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>We reserve the right to:</p>
                     <ul className="space-y-3">
                       {[
@@ -251,7 +251,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">9</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Updates & Changes</h2>
                   </div>
-                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>
                       We may update these Terms at any time. Continued use of the app means you accept the updated terms.
                     </p>
@@ -263,7 +263,7 @@ export default function TermsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-[#1f2937] text-white flex items-center justify-center font-black text-xl shadow-lg">10</div>
                     <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">Privacy</h2>
                   </div>
-                  <div className="pl-16 text-gray-600 leading-relaxed text-lg font-medium">
+                  <div className="pl-8 md:pl-16 text-gray-600 leading-relaxed text-lg font-medium">
                     <p>
                       Your data will be handled according to our <Link href="/privacy" className="text-[#0db368] font-bold underline">Privacy Policy</Link>. Please review it for more information.
                     </p>
@@ -273,7 +273,7 @@ export default function TermsPage() {
             </FadeIn>
 
             <FadeIn delay={0.3}>
-              <section className="bg-[#1f2937] p-12 rounded-[50px] text-white text-center relative overflow-hidden">
+              <section className="bg-[#1f2937] p-8 md:p-12 rounded-[32px] md:rounded-[50px] text-white text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#0db368]/20 to-transparent"></div>
                 <div className="relative z-10">
                   <h2 className="text-4xl font-black tracking-tight mb-6">Contact</h2>
@@ -282,7 +282,7 @@ export default function TermsPage() {
                   </p>
                   <a
                     href="mailto:maarga.app.lk@gmail.com"
-                    className="inline-block py-4 px-10 bg-[#0db368] rounded-2xl font-black text-lg hover:bg-[#0db368]/90 transition-all shadow-xl shadow-[#0db368]/20 active:scale-95"
+                    className="inline-block py-4 px-6 md:px-10 bg-[#0db368] rounded-2xl font-black text-sm md:text-lg hover:bg-[#0db368]/90 transition-all shadow-xl shadow-[#0db368]/20 active:scale-95 break-all md:break-normal"
                   >
                     maarga.app.lk@gmail.com
                   </a>
