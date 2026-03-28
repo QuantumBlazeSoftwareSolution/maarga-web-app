@@ -30,10 +30,6 @@ export async function sendOtp(email: string) {
 
     await sendAdminOtpEmail(email, otp);
 
-    console.log('------------------------------------------');
-    console.log(`[Admin AUTH] OTP for ${email}: ${otp}`);
-    console.log('------------------------------------------');
-
     return { success: true, message: 'OTP sent successfully' };
   } catch (error) {
     console.error('Send OTP Error:', error);
