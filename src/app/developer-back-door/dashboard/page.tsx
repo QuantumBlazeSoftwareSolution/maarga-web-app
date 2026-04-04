@@ -1,8 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
+import { getSystemStats } from '@/src/lib/actions/system';
 
 // ─── Neumorphism design tokens ───────────────────────────────────────────────
 // Base: #E1E4E9  Shadow-dark: #bebec0  Shadow-light: #ffffff
@@ -85,6 +87,30 @@ function arcPath(
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [stats, setStats] = useState({
+    cpu: 0,
+    memory: 0,
+    load: 0,
+    dbQueries: '0.0k/s',
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const res = await getSystemStats();
+      if (res.success && res.stats) {
+        setStats({
+          cpu: res.stats.cpu,
+          memory: res.stats.memory,
+          load: res.stats.load,
+          dbQueries: res.stats.dbQueries,
+        });
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     toast.success('Signed out successfully');
@@ -92,7 +118,7 @@ export default function AdminDashboard() {
   };
 
   // System load value 0–100 mapped to arc 135° → 405° (270° sweep)
-  const loadValue = 72; // mock: 72% load
+  const loadValue = stats.load;
   const arcStart = 135;
   const arcEnd = arcStart + (loadValue / 100) * 270;
 
@@ -411,11 +437,11 @@ export default function AdminDashboard() {
                 {/* Stats beside dial */}
                 <div className="flex flex-col gap-4">
                   {[
-                    { label: 'CPU', value: '72%', color: 'bg-blue-400' },
-                    { label: 'Memory', value: '58%', color: 'bg-indigo-400' },
+                    { label: 'CPU', value: `${stats.cpu}%`, color: 'bg-blue-400' },
+                    { label: 'Memory', value: `${stats.memory}%`, color: 'bg-indigo-400' },
                     {
                       label: 'DB Queries',
-                      value: '1.2k/s',
+                      value: stats.dbQueries,
                       color: 'bg-purple-400',
                     },
                   ].map((s) => (
@@ -430,14 +456,14 @@ export default function AdminDashboard() {
                         className="relative h-2.5 w-40 overflow-hidden rounded-full"
                       >
                         <div
-                          className={`absolute inset-y-0 left-0 rounded-full ${s.color}`}
+                          className={`absolute inset-y-0 left-0 rounded-full ${s.color} transition-all duration-1000 ease-in-out`}
                           style={{
                             width: s.value.includes('%') ? s.value : '60%',
                             opacity: 0.85,
                           }}
                         />
                       </div>
-                      <span className="w-12 text-xs font-bold text-slate-600">
+                      <span className="w-12 text-xs font-bold text-slate-600 tabular-nums">
                         {s.value}
                       </span>
                     </div>
