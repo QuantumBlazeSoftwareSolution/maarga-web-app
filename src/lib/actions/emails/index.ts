@@ -1,7 +1,7 @@
 'use server';
 
-import nodemailer from 'nodemailer';
 import { AdminOTPTemplate } from '@/src/components/email-template/admin-otp';
+import nodemailer from 'nodemailer';
 
 export async function sendAdminOtpEmail(email: string, otp: string) {
   try {
