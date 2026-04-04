@@ -277,7 +277,7 @@ export async function updateStationCoordinates(
 
     // 3. Database Update
     await updateStationCoords(id, lat, lng);
-    
+
     // 4. Revalidate
     revalidatePath('/developer-back-door/dashboard/stations');
 

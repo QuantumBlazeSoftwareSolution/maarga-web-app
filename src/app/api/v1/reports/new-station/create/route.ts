@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     if (!authId || !latitude || !longitude) {
       return NextResponse.json(
         { status: false, message: 'Missing required parameters.' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     console.error('API Error /v1/reports/new-station/create:', error);
     return NextResponse.json(
       { status: false, message: 'An internal error occurred.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

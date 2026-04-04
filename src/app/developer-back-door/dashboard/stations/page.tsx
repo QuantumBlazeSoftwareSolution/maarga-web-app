@@ -62,9 +62,8 @@ export default function StationManagementPage() {
   const [editData, setEditData] = useState<Partial<StationItem>>({});
 
   // Verification State
-  const [verificationStation, setVerificationStation] = useState<Station | null>(
-    null,
-  );
+  const [verificationStation, setVerificationStation] =
+    useState<Station | null>(null);
 
   // Coordinate Picker State
   const [pickingStation, setPickingStation] = useState<Station | null>(null);

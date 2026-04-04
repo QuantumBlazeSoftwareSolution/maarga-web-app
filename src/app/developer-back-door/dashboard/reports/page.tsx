@@ -55,7 +55,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       style={{ boxShadow: nmPressed }}
-      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getColors()}`}
+      className={`rounded-full px-3 py-1 text-[10px] font-black tracking-widest uppercase ${getColors()}`}
     >
       {status}
     </span>
@@ -64,11 +64,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function AvailabilityIndicator({ type }: { type: string }) {
   const color =
-    type === 'available'
-      ? '#10B981'
-      : type === 'low'
-        ? '#F59E0B'
-        : '#EF4444';
+    type === 'available' ? '#10B981' : type === 'low' ? '#F59E0B' : '#EF4444';
   return (
     <div className="flex items-center gap-1.5">
       <div
@@ -110,7 +106,9 @@ interface NewStationReport {
 export default function ReportsMonitoring() {
   const [activeTab, setActiveTab] = useState<'fuel' | 'new-station'>('fuel');
   const [fuelReports, setFuelReports] = useState<ReportWithItems[]>([]);
-  const [newStationReports, setNewStationReports] = useState<NewStationReport[]>([]);
+  const [newStationReports, setNewStationReports] = useState<
+    NewStationReport[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -138,7 +136,7 @@ export default function ReportsMonitoring() {
       style={{
         background: '#E1E4E9',
         fontFamily:
-          "var(--font-poppins), -apple-system, BlinkMacSystemFont, sans-serif",
+          'var(--font-poppins), -apple-system, BlinkMacSystemFont, sans-serif',
       }}
     >
       <nav
@@ -148,7 +146,7 @@ export default function ReportsMonitoring() {
         <div className="flex items-center gap-3">
           <div
             style={{ boxShadow: nmSubtle, background: '#E1E4E9' }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl cursor-pointer"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl"
             onClick={() => router.push('/developer-back-door/dashboard')}
           >
             <svg
@@ -183,23 +181,22 @@ export default function ReportsMonitoring() {
               Real-time feed of user-submitted station status updates
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
-            <NmCard 
-              className="flex p-1"
-              style={{ background: '#E1E4E9' }}
-            >
+            <NmCard className="flex p-1" style={{ background: '#E1E4E9' }}>
               <button
                 onClick={() => setActiveTab('fuel')}
                 style={{ boxShadow: activeTab === 'fuel' ? nmPressed : 'none' }}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 ${activeTab === 'fuel' ? 'text-blue-500' : 'text-slate-500'}`}
+                className={`rounded-xl px-4 py-2 text-xs font-black transition-all duration-200 ${activeTab === 'fuel' ? 'text-blue-500' : 'text-slate-500'}`}
               >
                 FUEL STATUS
               </button>
               <button
                 onClick={() => setActiveTab('new-station')}
-                style={{ boxShadow: activeTab === 'new-station' ? nmPressed : 'none' }}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 ${activeTab === 'new-station' ? 'text-blue-500' : 'text-slate-500'}`}
+                style={{
+                  boxShadow: activeTab === 'new-station' ? nmPressed : 'none',
+                }}
+                className={`rounded-xl px-4 py-2 text-xs font-black transition-all duration-200 ${activeTab === 'new-station' ? 'text-blue-500' : 'text-slate-500'}`}
               >
                 NEW STATIONS
               </button>
@@ -208,8 +205,10 @@ export default function ReportsMonitoring() {
             <NmCard className="px-4 py-2">
               <span className="text-xs font-bold text-slate-500">
                 Total:{' '}
-                <span className="text-blue-500 font-black">
-                  {activeTab === 'fuel' ? fuelReports.length : newStationReports.length}
+                <span className="font-black text-blue-500">
+                  {activeTab === 'fuel'
+                    ? fuelReports.length
+                    : newStationReports.length}
                 </span>
               </span>
             </NmCard>
@@ -220,17 +219,21 @@ export default function ReportsMonitoring() {
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           </div>
-        ) : (activeTab === 'fuel' ? fuelReports : newStationReports).length === 0 ? (
-          <NmCard className="py-20 flex flex-col items-center justify-center text-center">
+        ) : (activeTab === 'fuel' ? fuelReports : newStationReports).length ===
+          0 ? (
+          <NmCard className="flex flex-col items-center justify-center py-20 text-center">
             <div
               style={{ boxShadow: nmPressed }}
-              className="h-16 w-16 mb-6 rounded-full flex items-center justify-center text-2xl"
+              className="mb-6 flex h-16 w-16 items-center justify-center rounded-full text-2xl"
             >
               📋
             </div>
-            <h3 className="text-lg font-bold text-slate-700">No {activeTab === 'fuel' ? 'Fuel Status' : 'New Station'} Reports</h3>
-            <p className="text-sm text-slate-400 max-w-xs mt-1">
-              User submissions will appear here as soon as they are submitted from the mobile app.
+            <h3 className="text-lg font-bold text-slate-700">
+              No {activeTab === 'fuel' ? 'Fuel Status' : 'New Station'} Reports
+            </h3>
+            <p className="mt-1 max-w-xs text-sm text-slate-400">
+              User submissions will appear here as soon as they are submitted
+              from the mobile app.
             </p>
           </NmCard>
         ) : activeTab === 'fuel' ? (
@@ -238,21 +241,21 @@ export default function ReportsMonitoring() {
             {fuelReports.map((report) => (
               <NmCard key={report.id} className="p-6">
                 {/* ... existing fuel report render logic ... */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
                   {/* Station & User Info */}
                   <div className="flex-1 space-y-4">
                     <div className="flex items-start gap-4">
                       <div
                         style={{ boxShadow: nmSubtle }}
-                        className="h-10 w-10 shrink-0 rounded-xl bg-blue-50 flex items-center justify-center text-lg"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg"
                       >
                         ⛽
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-base font-black text-slate-700 truncate">
+                        <h4 className="truncate text-base font-black text-slate-700">
                           {report.stationName}
                         </h4>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                           <span className="text-xs font-bold text-slate-400">
                             By {report.userName ?? 'Unknown User'}
                           </span>
@@ -269,9 +272,9 @@ export default function ReportsMonitoring() {
                     {report.message && (
                       <div
                         style={{ boxShadow: nmPressed }}
-                        className="p-3 rounded-xl bg-slate-50/50"
+                        className="rounded-xl bg-slate-50/50 p-3"
                       >
-                        <p className="text-xs italic text-slate-500 leading-relaxed font-medium">
+                        <p className="text-xs leading-relaxed font-medium text-slate-500 italic">
                           &quot;{report.message}&quot;
                         </p>
                       </div>
@@ -279,40 +282,45 @@ export default function ReportsMonitoring() {
                   </div>
 
                   {/* Items Reporting info */}
-                  <div className="flex flex-wrap items-center gap-4 lg:px-6 lg:border-x border-slate-200/50 min-w-[300px]">
-                    <div className="w-full mb-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <div className="flex min-w-[300px] flex-wrap items-center gap-4 border-slate-200/50 lg:border-x lg:px-6">
+                    <div className="mb-1 w-full">
+                      <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase">
                         Item Availability
                       </span>
                     </div>
-                    {report.items.map((item: { itemName: string; availability: string }, idx: number) => (
-                      <div
-                        key={idx}
-                        style={{ boxShadow: nmSubtle }}
-                        className="flex flex-col p-2.5 rounded-xl min-w-[120px]"
-                      >
-                        <span className="text-[10px] font-black text-slate-700 truncate">
-                          {item.itemName}
-                        </span>
-                        <div className="mt-1.5">
-                          <AvailabilityIndicator type={item.availability} />
+                    {report.items.map(
+                      (
+                        item: { itemName: string; availability: string },
+                        idx: number,
+                      ) => (
+                        <div
+                          key={idx}
+                          style={{ boxShadow: nmSubtle }}
+                          className="flex min-w-[120px] flex-col rounded-xl p-2.5"
+                        >
+                          <span className="truncate text-[10px] font-black text-slate-700">
+                            {item.itemName}
+                          </span>
+                          <div className="mt-1.5">
+                            <AvailabilityIndicator type={item.availability} />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
 
                   {/* Queue & Final Status */}
-                  <div className="flex items-center gap-6 shrink-0 lg:pl-6">
+                  <div className="flex shrink-0 items-center gap-6 lg:pl-6">
                     <div className="text-right">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
+                      <span className="mb-1.5 block text-[9px] font-black tracking-widest text-slate-400 uppercase">
                         Queue Status
                       </span>
-                      <span className="text-xs font-black text-slate-600 block">
+                      <span className="block text-xs font-black text-slate-600">
                         {report.queue.replace('_', ' ').toUpperCase()}
                       </span>
                     </div>
                     <div className="flex flex-col items-center gap-2">
-                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                      <span className="block text-[9px] font-black tracking-widest text-slate-400 uppercase">
                         Consensus
                       </span>
                       <StatusBadge status={report.status} />
@@ -326,21 +334,21 @@ export default function ReportsMonitoring() {
           <div className="flex flex-col gap-6">
             {newStationReports.map((report) => (
               <NmCard key={report.id} className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
                   {/* Location Info */}
                   <div className="flex-1 space-y-4">
                     <div className="flex items-start gap-4">
                       <div
                         style={{ boxShadow: nmSubtle }}
-                        className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center text-lg"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-lg"
                       >
                         📍
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-base font-black text-slate-700 truncate">
+                        <h4 className="truncate text-base font-black text-slate-700">
                           New Station Location
                         </h4>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                           <span className="text-xs font-bold text-slate-400">
                             Suggested by {report.userName ?? 'Unknown User'}
                           </span>
@@ -356,11 +364,15 @@ export default function ReportsMonitoring() {
 
                     <div
                       style={{ boxShadow: nmPressed }}
-                      className="p-3 rounded-xl bg-slate-50/50 flex items-center justify-between"
+                      className="flex items-center justify-between rounded-xl bg-slate-50/50 p-3"
                     >
-                      <div className="text-[10px] font-black space-x-2 text-slate-500">
-                        <span className="bg-white/50 px-2 py-0.5 rounded">LAT: {parseFloat(report.latitude).toFixed(4)}</span>
-                        <span className="bg-white/50 px-2 py-0.5 rounded">LNG: {parseFloat(report.longitude).toFixed(4)}</span>
+                      <div className="space-x-2 text-[10px] font-black text-slate-500">
+                        <span className="rounded bg-white/50 px-2 py-0.5">
+                          LAT: {parseFloat(report.latitude).toFixed(4)}
+                        </span>
+                        <span className="rounded bg-white/50 px-2 py-0.5">
+                          LNG: {parseFloat(report.longitude).toFixed(4)}
+                        </span>
                       </div>
 
                       <a
@@ -368,17 +380,17 @@ export default function ReportsMonitoring() {
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ boxShadow: nmSubtle }}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black hover:scale-105 active:scale-95 transition-all"
+                        className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-1.5 text-[10px] font-black text-blue-600 transition-all hover:scale-105 active:scale-95"
                       >
-                         VIEW ON MAP
+                        VIEW ON MAP
                       </a>
                     </div>
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex items-center gap-6 shrink-0 lg:pl-6 border-l border-slate-200/50">
+                  <div className="flex shrink-0 items-center gap-6 border-l border-slate-200/50 lg:pl-6">
                     <div className="flex flex-col items-center gap-2">
-                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
+                      <span className="block text-[9px] font-black tracking-widest text-slate-400 uppercase">
                         Approval Status
                       </span>
                       <StatusBadge status={report.status} />

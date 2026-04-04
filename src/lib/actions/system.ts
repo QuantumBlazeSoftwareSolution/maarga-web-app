@@ -31,12 +31,12 @@ async function getCpuUsage(): Promise<number> {
 export async function getSystemStats() {
   try {
     const cpuPromise = getCpuUsage();
-    
+
     // Memory calculation
     const totalMem = os.totalmem(); // in bytes
     const freeMem = os.freemem(); // in bytes
-    const totalGB = (totalMem / (1024 ** 3)).toFixed(1);
-    const usedGB = ((totalMem - freeMem) / (1024 ** 3)).toFixed(1);
+    const totalGB = (totalMem / 1024 ** 3).toFixed(1);
+    const usedGB = ((totalMem - freeMem) / 1024 ** 3).toFixed(1);
     const memPercentage = Math.round(((totalMem - freeMem) / totalMem) * 100);
 
     const cpuUsage = await cpuPromise;
@@ -54,7 +54,6 @@ export async function getSystemStats() {
         load: Math.round((cpuUsage + memPercentage) / 2),
       },
     };
-
   } catch (error) {
     console.error('System stats error:', error);
     return { success: false, error: 'Failed to fetch system stats' };

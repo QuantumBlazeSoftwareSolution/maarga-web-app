@@ -18,7 +18,8 @@ export async function sendAdminOtpEmail(email: string, otp: string) {
     const htmlContent = AdminOTPTemplate({ otp, email });
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"Maarga Support" <maarga.app.lk@gmail.com>',
+      from:
+        process.env.SMTP_FROM || '"Maarga Support" <maarga.app.lk@gmail.com>',
       to: email,
       subject: 'Maarga Admin Access Code',
       html: htmlContent,
@@ -30,6 +31,9 @@ export async function sendAdminOtpEmail(email: string, otp: string) {
     return { success: true };
   } catch (error) {
     console.error('Error sending email:', error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }

@@ -1,4 +1,10 @@
-export const AdminOTPTemplate = ({ otp, email }: { otp: string, email: string }) => {
+export const AdminOTPTemplate = ({
+  otp,
+  email,
+}: {
+  otp: string;
+  email: string;
+}) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -75,4 +81,3 @@ export const AdminOTPTemplate = ({ otp, email }: { otp: string, email: string })
     </html>
   `;
 };
-

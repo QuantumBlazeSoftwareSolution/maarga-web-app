@@ -154,7 +154,11 @@ export default function AdminDashboard() {
   return (
     <div
       className="min-h-screen font-sans selection:bg-blue-200"
-      style={{ background: '#E1E4E9', fontFamily: "var(--font-poppins), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" }}
+      style={{
+        background: '#E1E4E9',
+        fontFamily:
+          "var(--font-poppins), -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      }}
     >
       {/* ── Top Navigation ─────────────────────────────────────────────── */}
       <nav
@@ -439,12 +443,16 @@ export default function AdminDashboard() {
                 {/* Stats beside dial */}
                 <div className="flex flex-col gap-4">
                   {[
-                    { label: 'CPU', value: `${stats.cpu}%`, color: 'bg-blue-400' },
-                    { 
-                      label: 'Memory', 
-                      value: `${stats.memory}%`, 
+                    {
+                      label: 'CPU',
+                      value: `${stats.cpu}%`,
+                      color: 'bg-blue-400',
+                    },
+                    {
+                      label: 'Memory',
+                      value: `${stats.memory}%`,
                       detail: `${stats.usedGB}/${stats.totalGB} GB`,
-                      color: 'bg-indigo-400' 
+                      color: 'bg-indigo-400',
                     },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-4">
@@ -468,7 +476,9 @@ export default function AdminDashboard() {
                       <div className="w-20 text-xs font-bold text-slate-600">
                         <span className="tabular-nums">{s.value}</span>
                         {s.detail && (
-                          <span className="ml-1 text-[9px] opacity-40 font-medium">({s.detail})</span>
+                          <span className="ml-1 text-[9px] font-medium opacity-40">
+                            ({s.detail})
+                          </span>
                         )}
                       </div>
                     </div>
@@ -606,9 +616,9 @@ export default function AdminDashboard() {
                 <div className="mt-4 flex gap-2">
                   <div
                     style={{ boxShadow: nmPressed, background: '#E1E4E9' }}
-                    className="h-1.5 w-full rounded-full overflow-hidden"
+                    className="h-1.5 w-full overflow-hidden rounded-full"
                   >
-                    <div className="h-full w-full rounded-full bg-amber-400 opacity-80 animate-pulse" />
+                    <div className="h-full w-full animate-pulse rounded-full bg-amber-400 opacity-80" />
                   </div>
                 </div>
               </NmCard>

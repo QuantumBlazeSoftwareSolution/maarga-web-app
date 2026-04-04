@@ -325,11 +325,7 @@ export default function FloatingNav() {
                 flexShrink: 0,
               }}
             >
-              <item.icon
-                size={16}
-                color={item.color}
-                strokeWidth={2.2}
-              />
+              <item.icon size={16} color={item.color} strokeWidth={2.2} />
             </div>
             <span
               style={{
