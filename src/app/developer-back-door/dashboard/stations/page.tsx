@@ -10,11 +10,17 @@ import {
   updateStation,
   deleteStation,
   syncAllStationItems,
+  updateStationCoordinates,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
 
 const MapVerificationModal = dynamic(
   () => import('@/src/components/admin/MapVerificationModal'),
+  { ssr: false },
+);
+
+const MapPickerModal = dynamic(
+  () => import('@/src/components/admin/MapPickerModal'),
   { ssr: false },
 );
 
@@ -59,6 +65,9 @@ export default function StationManagementPage() {
   const [verificationStation, setVerificationStation] = useState<Station | null>(
     null,
   );
+
+  // Coordinate Picker State
+  const [pickingStation, setPickingStation] = useState<Station | null>(null);
 
   const fetchStations = async () => {
     setIsLoading(true);
@@ -557,6 +566,7 @@ export default function StationManagementPage() {
                       </div>
                       <div className="flex shrink-0 items-center gap-4 pr-2">
                         <button
+                          title="Verify on Satellite"
                           onClick={() => setVerificationStation(station)}
                           style={{ boxShadow: nmOuter, background: BASE }}
                           className="group flex h-11 w-11 items-center justify-center rounded-2xl text-emerald-500 transition-all hover:text-emerald-600 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
@@ -571,11 +581,44 @@ export default function StationManagementPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2.2}
-                              d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.948L9 2m0 18l6-3m-6 3V2m6 15l5.447 2.724A2 2 0 0021 17.818V8.042a2 2 0 00-1.553-1.948L15 4m0 13V4m0 0L9 2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                           </svg>
                         </button>
                         <button
+                          title="Fix Coordinates"
+                          onClick={() => setPickingStation(station)}
+                          style={{ boxShadow: nmOuter, background: BASE }}
+                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-amber-500 transition-all hover:text-amber-600 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
+                        >
+                          <svg
+                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          title="Edit Station"
                           onClick={() => startEditing(station)}
                           style={{ boxShadow: nmOuter, background: BASE }}
                           className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-blue-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
@@ -630,6 +673,29 @@ export default function StationManagementPage() {
           lat={verificationStation.latitude}
           lng={verificationStation.longitude}
           stationName={verificationStation.name}
+        />
+      )}
+
+      {pickingStation && (
+        <MapPickerModal
+          isOpen={!!pickingStation}
+          onClose={() => setPickingStation(null)}
+          initialLat={pickingStation.latitude}
+          initialLng={pickingStation.longitude}
+          stationName={pickingStation.name}
+          onSave={async (newLat, newLng) => {
+            const res = await updateStationCoordinates(
+              pickingStation.id,
+              newLat,
+              newLng,
+            );
+            if (res.success) {
+              toast.success(res.message);
+              setPickingStation(null);
+            } else {
+              toast.error(res.message);
+            }
+          }}
         />
       )}
     </div>
