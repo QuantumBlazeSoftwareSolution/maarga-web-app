@@ -33,9 +33,11 @@ export async function getSystemStats() {
     const cpuPromise = getCpuUsage();
     
     // Memory calculation
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const memUsage = Math.round(((totalMem - freeMem) / totalMem) * 100);
+    const totalMem = os.totalmem(); // in bytes
+    const freeMem = os.freemem(); // in bytes
+    const totalGB = (totalMem / (1024 ** 3)).toFixed(1);
+    const usedGB = ((totalMem - freeMem) / (1024 ** 3)).toFixed(1);
+    const memPercentage = Math.round(((totalMem - freeMem) / totalMem) * 100);
 
     const cpuUsage = await cpuPromise;
 
@@ -46,11 +48,13 @@ export async function getSystemStats() {
       success: true,
       stats: {
         cpu: cpuUsage,
-        memory: memUsage,
-        load: Math.round((cpuUsage + memUsage) / 2), // Overall system load mapping
-        dbQueries: `${dbQueries}k/s`,
+        memory: memPercentage,
+        totalGB,
+        usedGB,
+        load: Math.round((cpuUsage + memPercentage) / 2),
       },
     };
+
   } catch (error) {
     console.error('System stats error:', error);
     return { success: false, error: 'Failed to fetch system stats' };

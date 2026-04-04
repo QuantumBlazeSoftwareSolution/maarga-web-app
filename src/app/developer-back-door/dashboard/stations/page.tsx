@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
 import {
@@ -11,6 +12,11 @@ import {
   syncAllStationItems,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
+
+const MapVerificationModal = dynamic(
+  () => import('@/src/components/admin/MapVerificationModal'),
+  { ssr: false },
+);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type StationWithItems = Station & {
@@ -48,6 +54,11 @@ export default function StationManagementPage() {
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<StationItem>>({});
+
+  // Verification State
+  const [verificationStation, setVerificationStation] = useState<Station | null>(
+    null,
+  );
 
   const fetchStations = async () => {
     setIsLoading(true);
@@ -224,7 +235,7 @@ export default function StationManagementPage() {
       {/* ── Main Layout ───────────────────────────────────────── */}
       <main className="mx-auto flex max-w-7xl flex-col gap-10 px-8 pt-6 pb-12 lg:flex-row">
         {/* Left Column: Register Card */}
-        <div className="flex-shrink-0 lg:w-1/3">
+        <div className="shrink-0 lg:w-1/3">
           <div
             style={{ boxShadow: nmOuter, background: BASE }}
             className="sticky top-24 rounded-2xl p-8"
@@ -546,6 +557,25 @@ export default function StationManagementPage() {
                       </div>
                       <div className="flex shrink-0 items-center gap-4 pr-2">
                         <button
+                          onClick={() => setVerificationStation(station)}
+                          style={{ boxShadow: nmOuter, background: BASE }}
+                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-emerald-500 transition-all hover:text-emerald-600 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
+                        >
+                          <svg
+                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.2}
+                              d="M9 20l-5.447-2.724A2 2 0 013 15.382V5.618a2 2 0 011.553-1.948L9 2m0 18l6-3m-6 3V2m6 15l5.447 2.724A2 2 0 0021 17.818V8.042a2 2 0 00-1.553-1.948L15 4m0 13V4m0 0L9 2"
+                            />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => startEditing(station)}
                           style={{ boxShadow: nmOuter, background: BASE }}
                           className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-blue-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
@@ -592,6 +622,16 @@ export default function StationManagementPage() {
           )}
         </div>
       </main>
+
+      {verificationStation && (
+        <MapVerificationModal
+          isOpen={!!verificationStation}
+          onClose={() => setVerificationStation(null)}
+          lat={verificationStation.latitude}
+          lng={verificationStation.longitude}
+          stationName={verificationStation.name}
+        />
+      )}
     </div>
   );
 }

@@ -90,8 +90,9 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     cpu: 0,
     memory: 0,
+    totalGB: '0.0',
+    usedGB: '0.0',
     load: 0,
-    dbQueries: '0.0k/s',
   });
 
   useEffect(() => {
@@ -101,8 +102,9 @@ export default function AdminDashboard() {
         setStats({
           cpu: res.stats.cpu,
           memory: res.stats.memory,
+          totalGB: res.stats.totalGB,
+          usedGB: res.stats.usedGB,
           load: res.stats.load,
-          dbQueries: res.stats.dbQueries,
         });
       }
     };
@@ -438,11 +440,11 @@ export default function AdminDashboard() {
                 <div className="flex flex-col gap-4">
                   {[
                     { label: 'CPU', value: `${stats.cpu}%`, color: 'bg-blue-400' },
-                    { label: 'Memory', value: `${stats.memory}%`, color: 'bg-indigo-400' },
-                    {
-                      label: 'DB Queries',
-                      value: stats.dbQueries,
-                      color: 'bg-purple-400',
+                    { 
+                      label: 'Memory', 
+                      value: `${stats.memory}%`, 
+                      detail: `${stats.usedGB}/${stats.totalGB} GB`,
+                      color: 'bg-indigo-400' 
                     },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-4">
@@ -463,9 +465,12 @@ export default function AdminDashboard() {
                           }}
                         />
                       </div>
-                      <span className="w-12 text-xs font-bold text-slate-600 tabular-nums">
-                        {s.value}
-                      </span>
+                      <div className="w-20 text-xs font-bold text-slate-600">
+                        <span className="tabular-nums">{s.value}</span>
+                        {s.detail && (
+                          <span className="ml-1 text-[9px] opacity-40 font-medium">({s.detail})</span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
