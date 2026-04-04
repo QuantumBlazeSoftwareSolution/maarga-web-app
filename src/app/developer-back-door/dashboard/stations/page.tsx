@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
@@ -67,6 +67,28 @@ export default function StationManagementPage() {
 
   // Coordinate Picker State
   const [pickingStation, setPickingStation] = useState<Station | null>(null);
+
+  // Verification Switch Simulation State
+  const [verifiedStations, setVerifiedStations] = useState<Record<string, boolean>>({});
+
+  const toggleVerification = (id: string) => {
+    setVerifiedStations(prev => ({ ...prev, [id]: !prev[id] }));
+    const currentState = !verifiedStations[id];
+    toast.info(`Station verification ${currentState ? 'ENABLED' : 'DISABLED'}`, {
+      description: 'UI state updated (Simulation Mode)',
+    });
+  };
+
+  // Tab Filtering State
+  const [activeTab, setActiveTab] = useState("All");
+
+  // Derive unique station names for tabs
+  const uniqueNames = useMemo(() => {
+    const names = Array.from(new Set(stations.map(s => s.name)))
+      .filter(name => name && name.trim() !== "")
+      .sort();
+    return ["All", ...names];
+  }, [stations]);
 
   const fetchStations = async () => {
     setIsLoading(true);
@@ -176,11 +198,15 @@ export default function StationManagementPage() {
     setEditData({ ...station });
   };
 
-  const filteredStations = stations.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.address.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredStations = stations.filter((station) => {
+    const matchesSearch = 
+      station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.address.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesTab = activeTab === "All" || station.name === activeTab;
+    
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <div
@@ -423,6 +449,51 @@ export default function StationManagementPage() {
             />
           </div>
 
+          {/* ── Sticky Station Brand Tabs ─────────────────────────────── */}
+          {uniqueNames.length > 2 && (
+            <div className="sticky top-[72px] z-30 -mx-8 mb-8 px-8 py-3 backdrop-blur-md bg-white/20 border-b border-white/10 transition-all duration-300">
+              <div className="mx-auto max-w-7xl">
+                <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {uniqueNames.map((name) => {
+                    const count = name === "All" ? stations.length : stations.filter(s => s.name === name).length;
+                    const isActive = activeTab === name;
+                    
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => setActiveTab(name)}
+                        style={{ 
+                          boxShadow: isActive ? nmPressed : nmSubtle,
+                          background: isActive ? '#f8fafc' : BASE 
+                        }}
+                        className={`group relative shrink-0 flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                          ${isActive 
+                            ? 'text-emerald-600 scale-[0.98]' 
+                            : 'text-slate-500 hover:text-slate-800'}`}
+                      >
+                        {/* Status Light Indicator */}
+                        {isActive && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+                        )}
+                        
+                        {name}
+                        
+                        {/* Count Badge */}
+                        <span className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-colors duration-300
+                          ${isActive 
+                            ? 'bg-emerald-500 text-white shadow-sm' 
+                            : 'bg-slate-200/50 text-slate-400 group-hover:bg-slate-200'}`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
@@ -563,7 +634,38 @@ export default function StationManagementPage() {
                           {station.latitude}, {station.longitude}
                         </span>
                       </div>
-                      <div className="flex shrink-0 items-center pr-2">
+
+                      {/* Right Side Controls: Switch + Actions */}
+                      <div className="flex flex-col items-end gap-3 pr-2">
+                        {/* Verification Switch (TOP) */}
+                        <div className="flex flex-col items-end min-w-[76px]">
+                          <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleVerification(station.id);
+                            }}
+                            className={`relative flex h-8 w-20 cursor-pointer items-center rounded-full p-1 transition-all duration-500 ease-out
+                              ${verifiedStations[station.id] 
+                                ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]' 
+                                : 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'}`}
+                          >
+                            {/* Labels Layer (Opposite side of thumb) */}
+                            <div className="absolute inset-0 flex items-center justify-between px-3.5 pointer-events-none z-10 text-white">
+                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 translate-x-2'}`}>ON</span>
+                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${!verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 -translate-x-2'}`}>OFF</span>
+                            </div>
+                            
+                            {/* Circular Sliding Thumb */}
+                            <div 
+                              className={`h-6 w-6 rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) flex items-center justify-center
+                                ${verifiedStations[station.id] ? 'translate-x-12' : 'translate-x-0'}`}
+                            >
+                              <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${verifiedStations[station.id] ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons (BOTTOM) */}
                         <div 
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="flex items-center gap-1 rounded-2xl p-1.5"
