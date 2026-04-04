@@ -563,98 +563,59 @@ export default function StationManagementPage() {
                           {station.latitude}, {station.longitude}
                         </span>
                       </div>
-                      <div className="flex shrink-0 items-center gap-4 pr-2">
-                        <button
-                          title="Verify on Satellite"
-                          onClick={() => setVerificationStation(station)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-emerald-500 transition-all hover:text-emerald-600 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
+                      <div className="flex shrink-0 items-center pr-2">
+                        <div 
+                          style={{ boxShadow: nmPressed, background: BASE }}
+                          className="flex items-center gap-1 rounded-2xl p-1.5"
                         >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                          <button
+                            title="Verify on Satellite"
+                            onClick={() => setVerificationStation(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-emerald-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          title="Fix Coordinates"
-                          onClick={() => setPickingStation(station)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-amber-500 transition-all hover:text-amber-600 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
-                        >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Fix Coordinates"
+                            onClick={() => setPickingStation(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-amber-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          title="Edit Station"
-                          onClick={() => startEditing(station)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-blue-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
-                        >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Edit Station"
+                            onClick={() => startEditing(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-blue-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(station.id)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-rose-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
-                        >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Delete Station"
+                            onClick={() => handleDelete(station.id)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
