@@ -4,7 +4,7 @@ import { getRecentReports } from '@/src/lib/actions/report';
 
 /**
  * @swagger
- * /api/v1/reports:
+ * /api/v1/reports/recent:
  *   get:
  *     summary: Retrieve the 20 most recent fuel reports
  *     description: Returns the latest 20 fuel station reports, ordered by newest first.
