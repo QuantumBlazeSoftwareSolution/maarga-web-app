@@ -72,6 +72,52 @@ export async function getAllReportsWithDetails() {
     return [];
   }
 }
+
+/**
+ * Fetches the most recent 20 reports ordered by newest first.
+ */
+export async function getRecentReports(limit = 20) {
+  try {
+    const reports = await db
+      .select({
+        id: reportsTable.id,
+        stationId: reportsTable.stationId,
+        stationName: stationTable.name,
+        userName: usersTable.name,
+        queue: reportsTable.queue,
+        message: reportsTable.message,
+        status: reportsTable.status,
+        createdAt: reportsTable.createdAt,
+      })
+      .from(reportsTable)
+      .innerJoin(stationTable, eq(reportsTable.stationId, stationTable.id))
+      .innerJoin(usersTable, eq(reportsTable.userId, usersTable.id))
+      .orderBy(desc(reportsTable.createdAt))
+      .limit(limit);
+
+    if (reports.length === 0) return [];
+
+    const reportIds = reports.map((r) => r.id);
+    const allReportItems = await db
+      .select({
+        reportId: reportItemsTable.reportId,
+        itemName: itemsTable.name,
+        availability: reportItemsTable.availability,
+      })
+      .from(reportItemsTable)
+      .innerJoin(itemsTable, eq(reportItemsTable.itemId, itemsTable.id))
+      .where(inArray(reportItemsTable.reportId, reportIds));
+
+    return reports.map((report) => ({
+      ...report,
+      items: allReportItems.filter((item) => item.reportId === report.id),
+    }));
+  } catch (error) {
+    console.error('Error fetching recent reports:', error);
+    return [];
+  }
+}
+
 export async function getRecentReportsForConsensus(
   stationId: string,
   hours: number,

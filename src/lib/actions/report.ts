@@ -2,6 +2,7 @@
 
 import {
   getAllReportsWithDetails as dbGetAllReports,
+  getRecentReports as dbGetRecentReports,
   getRecentReportsForConsensus,
 } from '../db/report/read';
 import { createReport, createReportItems } from '../db/report/write';
@@ -24,6 +25,10 @@ const QUEUE_MAP: Record<number, string> = {
 
 export async function getAllReports() {
   return await dbGetAllReports();
+}
+
+export async function getRecentReports() {
+  return await dbGetRecentReports(20);
 }
 
 /**
