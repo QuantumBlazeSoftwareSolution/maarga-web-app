@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
@@ -81,6 +81,35 @@ export default function StationManagementPage() {
 
   // Tab Filtering State
   const [activeTab, setActiveTab] = useState("All");
+
+  // Custom Drag Scroll Refs & State
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const scrollLeftValue = useRef(0);
+  const draggedDistance = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!tabsRef.current) return;
+    setIsDragging(true);
+    startX.current = e.pageX - tabsRef.current.offsetLeft;
+    scrollLeftValue.current = tabsRef.current.scrollLeft;
+    draggedDistance.current = 0;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !tabsRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - tabsRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5; // Scroll speed multiplier
+    tabsRef.current.scrollLeft = scrollLeftValue.current - walk;
+    draggedDistance.current = Math.abs(x - startX.current);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(true); // Wait, should be false
+    setIsDragging(false);
+  };
 
   // Derive unique station names for tabs
   const uniqueNames = useMemo(() => {
@@ -423,7 +452,7 @@ export default function StationManagementPage() {
           </div>
 
           {/* ── Search Bar ─────────────────────────────────────── */}
-          <div className="group relative mb-8">
+          <div className="group relative mb-4">
             <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 transition-colors group-focus-within:text-blue-500">
               <svg
                 className="h-4 w-4"
@@ -449,47 +478,60 @@ export default function StationManagementPage() {
             />
           </div>
 
-          {/* ── Sticky Station Brand Tabs ─────────────────────────────── */}
+          {/* ── Seamless Sticky Station Brand Tabs ─────────────────────────────── */}
           {uniqueNames.length > 2 && (
-            <div className="sticky top-[72px] z-30 -mx-8 mb-8 px-8 py-3 backdrop-blur-md bg-white/20 border-b border-white/10 transition-all duration-300">
-              <div className="mx-auto max-w-7xl">
-                <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                  {uniqueNames.map((name) => {
-                    const count = name === "All" ? stations.length : stations.filter(s => s.name === name).length;
-                    const isActive = activeTab === name;
-                    
-                    return (
-                      <button
-                        key={name}
-                        onClick={() => setActiveTab(name)}
-                        style={{ 
-                          boxShadow: isActive ? nmPressed : nmSubtle,
-                          background: isActive ? '#f8fafc' : BASE 
-                        }}
-                        className={`group relative shrink-0 flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300
-                          ${isActive 
-                            ? 'text-emerald-600 scale-[0.98]' 
-                            : 'text-slate-500 hover:text-slate-800'}`}
+            <div 
+              style={{ background: BASE }}
+              className="sticky top-[72px] z-30 mb-4 border-b border-slate-200/40 transition-all duration-300"
+            >
+              <div 
+                ref={tabsRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                className={`flex w-full items-center gap-2 overflow-x-auto scrollbar-hide select-none py-4 px-4 transition-all
+                  ${isDragging ? 'cursor-grabbing active:scale-[0.99]' : 'cursor-grab'}`}
+              >
+                {uniqueNames.map((name) => {
+                  const count = name === "All" ? stations.length : stations.filter(s => s.name === name).length;
+                  const isActive = activeTab === name;
+                  
+                  return (
+                    <button
+                      key={name}
+                      onClick={(e) => {
+                        // Prevent click if we were dragging
+                        if (draggedDistance.current > 5) return;
+                        setActiveTab(name);
+                      }}
+                      style={{ 
+                        boxShadow: isActive ? nmPressed : nmSubtle,
+                        background: BASE 
+                      }}
+                      className={`group relative shrink-0 flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                        ${isActive 
+                          ? 'text-emerald-600' 
+                          : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      {/* Smooth Neon Indicator */}
+                      {isActive && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                      )}
+                      
+                      {name}
+                      
+                      {/* Compact Badge */}
+                      <span className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-all duration-300
+                        ${isActive 
+                          ? 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20' 
+                          : 'bg-slate-200 text-slate-400 group-hover:bg-slate-300/50'}`}
                       >
-                        {/* Status Light Indicator */}
-                        {isActive && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-                        )}
-                        
-                        {name}
-                        
-                        {/* Count Badge */}
-                        <span className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-colors duration-300
-                          ${isActive 
-                            ? 'bg-emerald-500 text-white shadow-sm' 
-                            : 'bg-slate-200/50 text-slate-400 group-hover:bg-slate-200'}`}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

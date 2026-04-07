@@ -82,7 +82,10 @@ import { getStationsEnriched } from '@/src/lib/db/stations/read';
 export const GET = withAuth(async (_req: NextRequest) => {
   try {
     const stations = await getStationsEnriched();
-    return NextResponse.json(stations);
+    const filteredStations = stations.filter(
+      (station) => station.status === 'approved',
+    );
+    return NextResponse.json(filteredStations);
   } catch (error: unknown) {
     console.error('[API v1 Stations] Error:', error);
     return NextResponse.json(
