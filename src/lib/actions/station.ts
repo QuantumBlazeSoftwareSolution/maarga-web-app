@@ -7,6 +7,7 @@ import { sql, eq, desc, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { stationItemsTable } from '../db/schema/station-items';
 import { itemsTable } from '../db/schema/items';
+import { updateStationCoords } from '../db/stations/update';
 
 /**
  * Server Action to bulk import stations with batching.
@@ -239,5 +240,53 @@ export async function syncAllStationItems() {
       message:
         error instanceof Error ? error.message : 'Unknown error during sync',
     };
+  }
+}
+
+/**
+ * Server Action to update station coordinates with validation.
+ */
+export async function updateStationCoordinates(
+  id: string,
+  lat: string,
+  lng: string,
+) {
+  try {
+    // 1. Basic Validation
+    if (!id || !lat || !lng) {
+      return { success: false, message: 'ID and coordinates are required' };
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return { success: false, message: 'Invalid coordinate format' };
+    }
+
+    // 2. Range Validation
+    if (latitude < -90 || latitude > 90) {
+      return { success: false, message: 'Latitude must be between -90 and 90' };
+    }
+    if (longitude < -180 || longitude > 180) {
+      return {
+        success: false,
+        message: 'Longitude must be between -180 and 180',
+      };
+    }
+
+    // 3. Database Update
+    await updateStationCoords(id, lat, lng);
+
+    // 4. Revalidate
+    revalidatePath('/developer-back-door/dashboard/stations');
+
+    return {
+      success: true,
+      message: 'Station location updated successfully',
+    };
+  } catch (error) {
+    console.error('[COORD UPDATE ERROR]', error);
+    return { success: false, message: 'Failed to update coordinates' };
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
 import {
@@ -9,8 +10,19 @@ import {
   updateStation,
   deleteStation,
   syncAllStationItems,
+  updateStationCoordinates,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
+
+const MapVerificationModal = dynamic(
+  () => import('@/src/components/admin/MapVerificationModal'),
+  { ssr: false },
+);
+
+const MapPickerModal = dynamic(
+  () => import('@/src/components/admin/MapPickerModal'),
+  { ssr: false },
+);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type StationWithItems = Station & {
@@ -48,6 +60,64 @@ export default function StationManagementPage() {
   // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<StationItem>>({});
+
+  // Verification State
+  const [verificationStation, setVerificationStation] =
+    useState<Station | null>(null);
+
+  // Coordinate Picker State
+  const [pickingStation, setPickingStation] = useState<Station | null>(null);
+
+  // Verification Switch Simulation State
+  const [verifiedStations, setVerifiedStations] = useState<Record<string, boolean>>({});
+
+  const toggleVerification = (id: string) => {
+    setVerifiedStations(prev => ({ ...prev, [id]: !prev[id] }));
+    const currentState = !verifiedStations[id];
+    toast.info(`Station verification ${currentState ? 'ENABLED' : 'DISABLED'}`, {
+      description: 'UI state updated (Simulation Mode)',
+    });
+  };
+
+  // Tab Filtering State
+  const [activeTab, setActiveTab] = useState("All");
+
+  // Custom Drag Scroll Refs & State
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const scrollLeftValue = useRef(0);
+  const draggedDistance = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!tabsRef.current) return;
+    setIsDragging(true);
+    startX.current = e.pageX - tabsRef.current.offsetLeft;
+    scrollLeftValue.current = tabsRef.current.scrollLeft;
+    draggedDistance.current = 0;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !tabsRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - tabsRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5; // Scroll speed multiplier
+    tabsRef.current.scrollLeft = scrollLeftValue.current - walk;
+    draggedDistance.current = Math.abs(x - startX.current);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(true); // Wait, should be false
+    setIsDragging(false);
+  };
+
+  // Derive unique station names for tabs
+  const uniqueNames = useMemo(() => {
+    const names = Array.from(new Set(stations.map(s => s.name)))
+      .filter(name => name && name.trim() !== "")
+      .sort();
+    return ["All", ...names];
+  }, [stations]);
 
   const fetchStations = async () => {
     setIsLoading(true);
@@ -157,11 +227,15 @@ export default function StationManagementPage() {
     setEditData({ ...station });
   };
 
-  const filteredStations = stations.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.address.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredStations = stations.filter((station) => {
+    const matchesSearch = 
+      station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.address.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesTab = activeTab === "All" || station.name === activeTab;
+    
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <div
@@ -224,7 +298,7 @@ export default function StationManagementPage() {
       {/* ── Main Layout ───────────────────────────────────────── */}
       <main className="mx-auto flex max-w-7xl flex-col gap-10 px-8 pt-6 pb-12 lg:flex-row">
         {/* Left Column: Register Card */}
-        <div className="flex-shrink-0 lg:w-1/3">
+        <div className="shrink-0 lg:w-1/3">
           <div
             style={{ boxShadow: nmOuter, background: BASE }}
             className="sticky top-24 rounded-2xl p-8"
@@ -378,7 +452,7 @@ export default function StationManagementPage() {
           </div>
 
           {/* ── Search Bar ─────────────────────────────────────── */}
-          <div className="group relative mb-8">
+          <div className="group relative mb-4">
             <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400 transition-colors group-focus-within:text-blue-500">
               <svg
                 className="h-4 w-4"
@@ -403,6 +477,64 @@ export default function StationManagementPage() {
               className="w-full appearance-none rounded-2xl border-0 py-4 pr-4 pl-11 text-sm font-bold text-slate-700 placeholder-slate-400 transition-all outline-none focus:ring-2 focus:ring-blue-300"
             />
           </div>
+
+          {/* ── Seamless Sticky Station Brand Tabs ─────────────────────────────── */}
+          {uniqueNames.length > 2 && (
+            <div 
+              style={{ background: BASE }}
+              className="sticky top-[72px] z-30 mb-4 border-b border-slate-200/40 transition-all duration-300"
+            >
+              <div 
+                ref={tabsRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                className={`flex w-full items-center gap-2 overflow-x-auto scrollbar-hide select-none py-4 px-4 transition-all
+                  ${isDragging ? 'cursor-grabbing active:scale-[0.99]' : 'cursor-grab'}`}
+              >
+                {uniqueNames.map((name) => {
+                  const count = name === "All" ? stations.length : stations.filter(s => s.name === name).length;
+                  const isActive = activeTab === name;
+                  
+                  return (
+                    <button
+                      key={name}
+                      onClick={(e) => {
+                        // Prevent click if we were dragging
+                        if (draggedDistance.current > 5) return;
+                        setActiveTab(name);
+                      }}
+                      style={{ 
+                        boxShadow: isActive ? nmPressed : nmSubtle,
+                        background: BASE 
+                      }}
+                      className={`group relative shrink-0 flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                        ${isActive 
+                          ? 'text-emerald-600' 
+                          : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                      {/* Smooth Neon Indicator */}
+                      {isActive && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                      )}
+                      
+                      {name}
+                      
+                      {/* Compact Badge */}
+                      <span className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-all duration-300
+                        ${isActive 
+                          ? 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20' 
+                          : 'bg-slate-200 text-slate-400 group-hover:bg-slate-300/50'}`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
@@ -544,45 +676,90 @@ export default function StationManagementPage() {
                           {station.latitude}, {station.longitude}
                         </span>
                       </div>
-                      <div className="flex shrink-0 items-center gap-4 pr-2">
-                        <button
-                          onClick={() => startEditing(station)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-blue-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
-                        >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+
+                      {/* Right Side Controls: Switch + Actions */}
+                      <div className="flex flex-col items-end gap-3 pr-2">
+                        {/* Verification Switch (TOP) */}
+                        <div className="flex flex-col items-end min-w-[76px]">
+                          <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleVerification(station.id);
+                            }}
+                            className={`relative flex h-8 w-20 cursor-pointer items-center rounded-full p-1 transition-all duration-500 ease-out
+                              ${verifiedStations[station.id] 
+                                ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]' 
+                                : 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'}`}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(station.id)}
-                          style={{ boxShadow: nmOuter, background: BASE }}
-                          className="group flex h-11 w-11 items-center justify-center rounded-2xl text-slate-400 transition-all hover:text-rose-500 active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff]"
+                            {/* Labels Layer (Opposite side of thumb) */}
+                            <div className="absolute inset-0 flex items-center justify-between px-3.5 pointer-events-none z-10 text-white">
+                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 translate-x-2'}`}>ON</span>
+                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${!verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 -translate-x-2'}`}>OFF</span>
+                            </div>
+                            
+                            {/* Circular Sliding Thumb */}
+                            <div 
+                              className={`h-6 w-6 rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) flex items-center justify-center
+                                ${verifiedStations[station.id] ? 'translate-x-12' : 'translate-x-0'}`}
+                            >
+                              <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${verifiedStations[station.id] ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons (BOTTOM) */}
+                        <div 
+                          style={{ boxShadow: nmPressed, background: BASE }}
+                          className="flex items-center gap-1 rounded-2xl p-1.5"
                         >
-                          <svg
-                            className="h-[18px] w-[18px] transition-transform group-active:scale-95"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                          <button
+                            title="Verify on Satellite"
+                            onClick={() => setVerificationStation(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-emerald-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2.2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Fix Coordinates"
+                            onClick={() => setPickingStation(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-amber-500 transition-all hover:bg-white/50 active:scale-90"
+                          >
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Edit Station"
+                            onClick={() => startEditing(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-blue-500 transition-all hover:bg-white/50 active:scale-90"
+                          >
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+
+                          <button
+                            title="Delete Station"
+                            onClick={() => handleDelete(station.id)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition-all hover:bg-white/50 active:scale-90"
+                          >
+                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -592,6 +769,39 @@ export default function StationManagementPage() {
           )}
         </div>
       </main>
+
+      {verificationStation && (
+        <MapVerificationModal
+          isOpen={!!verificationStation}
+          onClose={() => setVerificationStation(null)}
+          lat={verificationStation.latitude}
+          lng={verificationStation.longitude}
+          stationName={verificationStation.name}
+        />
+      )}
+
+      {pickingStation && (
+        <MapPickerModal
+          isOpen={!!pickingStation}
+          onClose={() => setPickingStation(null)}
+          initialLat={pickingStation.latitude}
+          initialLng={pickingStation.longitude}
+          stationName={pickingStation.name}
+          onSave={async (newLat, newLng) => {
+            const res = await updateStationCoordinates(
+              pickingStation.id,
+              newLat,
+              newLng,
+            );
+            if (res.success) {
+              toast.success(res.message);
+              setPickingStation(null);
+            } else {
+              toast.error(res.message);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

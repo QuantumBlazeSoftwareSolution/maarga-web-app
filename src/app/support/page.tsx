@@ -33,7 +33,7 @@ function FadeIn({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}
+      className={`transform transition-all duration-700 ease-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${className}`}
       style={{ transitionDelay: `${delay}s` }}
     >
       {children}
@@ -45,19 +45,22 @@ const SUPPORT_TOPICS = [
   {
     value: 'delete-account',
     label: '🗑️ Delete My Account',
-    description: 'Permanently remove your Maarga account and all associated data.',
+    description:
+      'Permanently remove your Maarga account and all associated data.',
     tag: 'Account',
   },
   {
     value: 'remove-data',
     label: '🔒 Remove My Data',
-    description: 'Request deletion of specific personal data without deleting your account.',
+    description:
+      'Request deletion of specific personal data without deleting your account.',
     tag: 'Data & Privacy',
   },
   {
     value: 'privacy-concern',
     label: '🛡️ Privacy Concern',
-    description: 'Report a privacy issue or ask about how your data is handled.',
+    description:
+      'Report a privacy issue or ask about how your data is handled.',
     tag: 'Data & Privacy',
   },
   {
@@ -100,12 +103,12 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#1f2937] font-sans selection:bg-[#0db368]/20 selection:text-[#0db368]">
+    <div className="min-h-screen bg-[#fafafa] font-sans text-[#1f2937] selection:bg-[#0db368]/20 selection:text-[#0db368]">
       {/* ── Header ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center group">
-            <div className="h-16 w-16 rounded-xl overflow-hidden transition-transform duration-300 relative">
+      <header className="fixed top-0 right-0 left-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+          <Link href="/" className="group flex items-center">
+            <div className="relative h-16 w-16 overflow-hidden rounded-xl transition-transform duration-300">
               <Image
                 src="/Maarga.png"
                 alt="Maarga Logo"
@@ -116,7 +119,7 @@ export default function SupportPage() {
           </Link>
           <Link
             href="/"
-            className="text-sm font-bold text-gray-500 hover:text-[#0db368] transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 text-sm font-bold text-gray-500 transition-colors hover:text-[#0db368]"
           >
             <svg
               width="20"
@@ -133,42 +136,45 @@ export default function SupportPage() {
         </div>
       </header>
 
-      <main className="pt-32 pb-24 px-6">
-        <div className="max-w-7xl mx-auto">
+      <main className="px-6 pt-32 pb-24">
+        <div className="mx-auto max-w-7xl">
           {/* ── Page Header ── */}
           <FadeIn>
-            <div className="text-center mb-16">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-[#0db368]/10 text-[#0db368] text-[10px] font-black uppercase tracking-[0.3em] mb-6 border border-[#0db368]/20">
+            <div className="mb-16 text-center">
+              <div className="mb-6 inline-block rounded-full border border-[#0db368]/20 bg-[#0db368]/10 px-4 py-1.5 text-[10px] font-black tracking-[0.3em] text-[#0db368] uppercase">
                 Help Center
               </div>
-              <h1 className="text-5xl md:text-7xl font-black text-[#1f2937] tracking-tighter mb-4 leading-[0.9]">
+              <h1 className="mb-4 text-5xl leading-[0.9] font-black tracking-tighter text-[#1f2937] md:text-7xl">
                 How can we <span className="text-[#0db368]">help?</span>
               </h1>
-              <p className="text-gray-500 font-medium text-lg max-w-xl mx-auto">
-                Choose a topic below and send us your request. We respond within 48 hours.
+              <p className="mx-auto max-w-xl text-lg font-medium text-gray-500">
+                Choose a topic below and send us your request. We respond within
+                48 hours.
               </p>
             </div>
           </FadeIn>
 
           {/* ── Two-Column Layout ── */}
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
+          <div className="grid items-start gap-12 lg:grid-cols-2">
             {/* ── Left: Support Form ── */}
             <FadeIn delay={0.1}>
-              <div className="glass p-8 md:p-10 rounded-[40px] border border-white shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-[#0db368]/5 rounded-bl-[100px] -mr-12 -mt-12 pointer-events-none" />
+              <div className="glass relative overflow-hidden rounded-[40px] border border-white p-8 shadow-xl md:p-10">
+                <div className="pointer-events-none absolute top-0 right-0 -mt-12 -mr-12 h-48 w-48 rounded-bl-[100px] bg-[#0db368]/5" />
 
                 {status === 'success' ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center gap-6">
-                    <div className="w-20 h-20 bg-[#0db368]/10 rounded-full flex items-center justify-center text-4xl border border-[#0db368]/20">
+                  <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#0db368]/20 bg-[#0db368]/10 text-4xl">
                       ✅
                     </div>
-                    <h2 className="text-3xl font-black text-[#1f2937] tracking-tight">
+                    <h2 className="text-3xl font-black tracking-tight text-[#1f2937]">
                       Request Submitted!
                     </h2>
-                    <p className="text-gray-500 font-medium max-w-sm">
+                    <p className="max-w-sm font-medium text-gray-500">
                       We&apos;ve received your request and will respond to{' '}
-                      <span className="text-[#0db368] font-black">{form.email}</span> within 48
-                      hours.
+                      <span className="font-black text-[#0db368]">
+                        {form.email}
+                      </span>{' '}
+                      within 48 hours.
                     </p>
                     <button
                       onClick={() => {
@@ -176,37 +182,40 @@ export default function SupportPage() {
                         setForm({ name: '', email: '', message: '' });
                         setSelectedTopic('');
                       }}
-                      className="mt-2 py-3 px-8 bg-[#1f2937] text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
+                      className="mt-2 rounded-2xl bg-[#1f2937] px-8 py-3 text-sm font-black tracking-widest text-white uppercase transition-all hover:bg-black active:scale-95"
                     >
                       Submit Another
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                  <form
+                    onSubmit={handleSubmit}
+                    className="relative z-10 space-y-6"
+                  >
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-3">
+                      <label className="mb-3 block text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase">
                         Select a Topic
                       </label>
-                      <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
                         {SUPPORT_TOPICS.map((topic) => (
                           <button
                             key={topic.value}
                             type="button"
                             onClick={() => setSelectedTopic(topic.value)}
-                            className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 group relative overflow-hidden ${
+                            className={`group relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
                               selectedTopic === topic.value
                                 ? 'border-[#0db368] bg-[#0db368]/5 shadow-md'
                                 : 'border-gray-100 bg-white hover:border-[#0db368]/40 hover:shadow-sm'
                             }`}
                           >
-                            <div className="text-sm font-black text-[#1f2937] mb-1">
+                            <div className="mb-1 text-sm font-black text-[#1f2937]">
                               {topic.label}
                             </div>
-                            <div className="text-[11px] text-gray-400 font-medium leading-snug">
+                            <div className="text-[11px] leading-snug font-medium text-gray-400">
                               {topic.description}
                             </div>
                             {selectedTopic === topic.value && (
-                              <div className="absolute top-2 right-2 w-5 h-5 bg-[#0db368] rounded-full flex items-center justify-center">
+                              <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#0db368]">
                                 <svg
                                   width="10"
                                   height="10"
@@ -228,13 +237,13 @@ export default function SupportPage() {
                     {currentTopic &&
                       (currentTopic.value === 'delete-account' ||
                         currentTopic.value === 'remove-data') && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-                          <div className="text-xl mt-0.5">⚠️</div>
+                        <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                          <div className="mt-0.5 text-xl">⚠️</div>
                           <div>
-                            <div className="text-sm font-black text-amber-800 mb-1">
+                            <div className="mb-1 text-sm font-black text-amber-800">
                               Important Notice
                             </div>
-                            <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                            <p className="text-xs leading-relaxed font-medium text-amber-700">
                               {currentTopic.value === 'delete-account'
                                 ? 'Account deletion is permanent and cannot be undone. All your fuel history, preferences, and profile data will be removed within 30 days.'
                                 : 'Data removal requests are processed within 30 days. Some data may be retained for legal compliance purposes only.'}
@@ -244,11 +253,11 @@ export default function SupportPage() {
                       )}
 
                     {/* Name + Email */}
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label
                           htmlFor="support-name"
-                          className="block text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-2"
+                          className="mb-2 block text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase"
                         >
                           Full Name
                         </label>
@@ -257,15 +266,17 @@ export default function SupportPage() {
                           type="text"
                           required
                           value={form.name}
-                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          onChange={(e) =>
+                            setForm({ ...form, name: e.target.value })
+                          }
                           placeholder="Kamal Perera"
-                          className="w-full px-4 py-3.5 rounded-2xl border-2 border-gray-100 bg-white text-[#1f2937] font-bold placeholder-gray-300 focus:outline-none focus:border-[#0db368] transition-colors text-sm"
+                          className="w-full rounded-2xl border-2 border-gray-100 bg-white px-4 py-3.5 text-sm font-bold text-[#1f2937] placeholder-gray-300 transition-colors focus:border-[#0db368] focus:outline-none"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="support-email"
-                          className="block text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-2"
+                          className="mb-2 block text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase"
                         >
                           Email Address
                         </label>
@@ -274,9 +285,11 @@ export default function SupportPage() {
                           type="email"
                           required
                           value={form.email}
-                          onChange={(e) => setForm({ ...form, email: e.target.value })}
+                          onChange={(e) =>
+                            setForm({ ...form, email: e.target.value })
+                          }
                           placeholder="you@email.com"
-                          className="w-full px-4 py-3.5 rounded-2xl border-2 border-gray-100 bg-white text-[#1f2937] font-bold placeholder-gray-300 focus:outline-none focus:border-[#0db368] transition-colors text-sm"
+                          className="w-full rounded-2xl border-2 border-gray-100 bg-white px-4 py-3.5 text-sm font-bold text-[#1f2937] placeholder-gray-300 transition-colors focus:border-[#0db368] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -285,7 +298,7 @@ export default function SupportPage() {
                     <div>
                       <label
                         htmlFor="support-message"
-                        className="block text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-2"
+                        className="mb-2 block text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase"
                       >
                         Your Message
                       </label>
@@ -294,7 +307,9 @@ export default function SupportPage() {
                         required
                         rows={5}
                         value={form.message}
-                        onChange={(e) => setForm({ ...form, message: e.target.value })}
+                        onChange={(e) =>
+                          setForm({ ...form, message: e.target.value })
+                        }
                         placeholder={
                           selectedTopic === 'delete-account'
                             ? 'Please confirm you want to permanently delete your account. Include the email address linked to your Maarga account...'
@@ -302,7 +317,7 @@ export default function SupportPage() {
                               ? 'Tell us which specific data you would like us to remove (e.g. location history, profile data)...'
                               : 'Describe your issue or request in as much detail as possible...'
                         }
-                        className="w-full px-4 py-3.5 rounded-2xl border-2 border-gray-100 bg-white text-[#1f2937] font-bold placeholder-gray-300 focus:outline-none focus:border-[#0db368] transition-colors text-sm resize-none"
+                        className="w-full resize-none rounded-2xl border-2 border-gray-100 bg-white px-4 py-3.5 text-sm font-bold text-[#1f2937] placeholder-gray-300 transition-colors focus:border-[#0db368] focus:outline-none"
                       />
                     </div>
 
@@ -315,12 +330,12 @@ export default function SupportPage() {
                         !form.message ||
                         status === 'loading'
                       }
-                      className="w-full py-4 bg-[#0db368] text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-[#0a8f54] transition-all shadow-xl shadow-[#0db368]/20 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 flex items-center justify-center gap-3"
+                      className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#0db368] py-4 text-sm font-black tracking-widest text-white uppercase shadow-xl shadow-[#0db368]/20 transition-all hover:bg-[#0a8f54] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
                     >
                       {status === 'loading' ? (
                         <>
                           <svg
-                            className="animate-spin w-5 h-5"
+                            className="h-5 w-5 animate-spin"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -353,11 +368,11 @@ export default function SupportPage() {
                       )}
                     </button>
 
-                    <p className="text-center text-[11px] text-gray-400 font-medium">
+                    <p className="text-center text-[11px] font-medium text-gray-400">
                       Or email us directly at{' '}
                       <a
                         href="mailto:maarga.app.lk@gmail.com"
-                        className="text-[#0db368] font-black hover:underline"
+                        className="font-black text-[#0db368] hover:underline"
                       >
                         maarga.app.lk@gmail.com
                       </a>
@@ -371,18 +386,19 @@ export default function SupportPage() {
             <FadeIn delay={0.2} className="lg:sticky lg:top-28">
               <div className="space-y-6">
                 {/* App Preview Card */}
-                <div className="relative bg-[#1f2937] rounded-[40px] overflow-hidden p-8 md:p-10">
+                <div className="relative overflow-hidden rounded-[40px] bg-[#1f2937] p-8 md:p-10">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#0db368]/25 to-transparent" />
                   <div
                     className="absolute inset-0 opacity-[0.04]"
                     style={{
-                      backgroundImage: 'radial-gradient(#0db368 1px, transparent 1px)',
+                      backgroundImage:
+                        'radial-gradient(#0db368 1px, transparent 1px)',
                       backgroundSize: '20px 20px',
                     }}
                   />
                   <div className="relative z-10">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-14 h-14 rounded-2xl overflow-hidden relative bg-white/10 border border-white/10">
+                    <div className="mb-6 flex items-center gap-4">
+                      <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-white/10 bg-white/10">
                         <Image
                           src="/Maarga.png"
                           alt="Maarga"
@@ -391,40 +407,54 @@ export default function SupportPage() {
                         />
                       </div>
                       <div>
-                        <div className="text-white font-black text-xl tracking-tight">Maarga</div>
-                        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+                        <div className="text-xl font-black tracking-tight text-white">
+                          Maarga
+                        </div>
+                        <div className="text-xs font-bold tracking-widest text-gray-400 uppercase">
                           Sri Lanka&apos;s Fuel Finder
                         </div>
                       </div>
                     </div>
 
-                    <h2 className="text-white font-black text-2xl md:text-3xl tracking-tight mb-3 leading-tight">
+                    <h2 className="mb-3 text-2xl leading-tight font-black tracking-tight text-white md:text-3xl">
                       Your data, your control.
                     </h2>
-                    <p className="text-gray-400 font-medium text-sm leading-relaxed mb-8">
-                      We take your privacy seriously. Every request is handled within{' '}
-                      <span className="text-[#0db368] font-black">48 hours</span>. Data deletion
-                      requests are completed within{' '}
-                      <span className="text-[#0db368] font-black">30 days</span>.
+                    <p className="mb-8 text-sm leading-relaxed font-medium text-gray-400">
+                      We take your privacy seriously. Every request is handled
+                      within{' '}
+                      <span className="font-black text-[#0db368]">
+                        48 hours
+                      </span>
+                      . Data deletion requests are completed within{' '}
+                      <span className="font-black text-[#0db368]">30 days</span>
+                      .
                     </p>
 
                     {/* Data Points */}
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { label: 'Response Time', value: '48hrs', icon: '⏱️' },
-                        { label: 'Data Deleted In', value: '30 days', icon: '🔒' },
-                        { label: 'Encrypted Transit', value: 'Always', icon: '🛡️' },
+                        {
+                          label: 'Data Deleted In',
+                          value: '30 days',
+                          icon: '🔒',
+                        },
+                        {
+                          label: 'Encrypted Transit',
+                          value: 'Always',
+                          icon: '🛡️',
+                        },
                         { label: 'Data Sold?', value: 'Never', icon: '🚫' },
                       ].map((stat, i) => (
                         <div
                           key={i}
-                          className="bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors"
+                          className="rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10"
                         >
-                          <div className="text-lg mb-1">{stat.icon}</div>
-                          <div className="text-white font-black text-base tracking-tight">
+                          <div className="mb-1 text-lg">{stat.icon}</div>
+                          <div className="text-base font-black tracking-tight text-white">
                             {stat.value}
                           </div>
-                          <div className="text-gray-500 text-[10px] font-black uppercase tracking-widest">
+                          <div className="text-[10px] font-black tracking-widest text-gray-500 uppercase">
                             {stat.label}
                           </div>
                         </div>
@@ -434,8 +464,8 @@ export default function SupportPage() {
                 </div>
 
                 {/* Data Handling Info */}
-                <div className="glass p-6 rounded-[30px] border border-white shadow-lg space-y-4">
-                  <div className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+                <div className="glass space-y-4 rounded-[30px] border border-white p-6 shadow-lg">
+                  <div className="text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase">
                     What data we collect
                   </div>
                   {[
@@ -460,16 +490,20 @@ export default function SupportPage() {
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-4">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base"
                         style={{ backgroundColor: `${item.color}15` }}
                       >
                         {item.icon}
                       </div>
                       <div>
-                        <div className="font-black text-[#1f2937] text-sm">{item.label}</div>
-                        <div className="text-gray-400 text-xs font-medium">{item.detail}</div>
+                        <div className="text-sm font-black text-[#1f2937]">
+                          {item.label}
+                        </div>
+                        <div className="text-xs font-medium text-gray-400">
+                          {item.detail}
+                        </div>
                       </div>
-                      <div className="ml-auto w-5 h-5 bg-[#0db368]/10 rounded-full flex items-center justify-center shrink-0">
+                      <div className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0db368]/10">
                         <svg
                           width="10"
                           height="10"
@@ -484,9 +518,9 @@ export default function SupportPage() {
                     </div>
                   ))}
 
-                  <div className="pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400 font-bold">
-                      <div className="w-2 h-2 rounded-full bg-[#0db368] animate-pulse" />
+                  <div className="border-t border-gray-100 pt-3">
+                    <div className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-[#0db368]" />
                       We never collect sensitive personal information
                     </div>
                   </div>
@@ -496,28 +530,32 @@ export default function SupportPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <Link
                     href="/privacy"
-                    className="glass p-5 rounded-[24px] border border-white shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
+                    className="glass group flex items-center gap-3 rounded-[24px] border border-white p-5 shadow-sm transition-all hover:shadow-md"
                   >
-                    <div className="w-10 h-10 bg-[#0db368]/10 rounded-xl flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0db368]/10 text-lg transition-transform group-hover:scale-110">
                       🔒
                     </div>
                     <div>
-                      <div className="font-black text-[#1f2937] text-sm">Privacy Policy</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      <div className="text-sm font-black text-[#1f2937]">
+                        Privacy Policy
+                      </div>
+                      <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                         Read →
                       </div>
                     </div>
                   </Link>
                   <Link
                     href="/terms"
-                    className="glass p-5 rounded-[24px] border border-white shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
+                    className="glass group flex items-center gap-3 rounded-[24px] border border-white p-5 shadow-sm transition-all hover:shadow-md"
                   >
-                    <div className="w-10 h-10 bg-[#3b82f6]/10 rounded-xl flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#3b82f6]/10 text-lg transition-transform group-hover:scale-110">
                       📄
                     </div>
                     <div>
-                      <div className="font-black text-[#1f2937] text-sm">Terms of Service</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      <div className="text-sm font-black text-[#1f2937]">
+                        Terms of Service
+                      </div>
+                      <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                         Read →
                       </div>
                     </div>
@@ -529,7 +567,7 @@ export default function SupportPage() {
 
           {/* ── Bottom Trust Strip ── */}
           <FadeIn delay={0.3}>
-            <div className="mt-20 grid sm:grid-cols-3 gap-6 text-center">
+            <div className="mt-20 grid gap-6 text-center sm:grid-cols-3">
               {[
                 {
                   icon: '🔐',
@@ -549,15 +587,17 @@ export default function SupportPage() {
               ].map((item, i) => (
                 <div
                   key={i}
-                  className="glass p-8 rounded-[30px] border border-white shadow-sm hover:shadow-premium transition-all group"
+                  className="glass hover:shadow-premium group rounded-[30px] border border-white p-8 shadow-sm transition-all"
                 >
-                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform inline-block">
+                  <div className="mb-4 inline-block text-4xl transition-transform group-hover:scale-110">
                     {item.icon}
                   </div>
-                  <h3 className="font-black text-[#1f2937] text-lg tracking-tight mb-2">
+                  <h3 className="mb-2 text-lg font-black tracking-tight text-[#1f2937]">
                     {item.title}
                   </h3>
-                  <p className="text-gray-500 text-sm font-medium leading-relaxed">{item.desc}</p>
+                  <p className="text-sm leading-relaxed font-medium text-gray-500">
+                    {item.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -566,9 +606,9 @@ export default function SupportPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="py-12 border-t border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-gray-400 font-bold uppercase tracking-[0.3em] text-[10px]">
+      <footer className="border-t border-gray-100 bg-white py-12">
+        <div className="mx-auto max-w-7xl px-6 text-center">
+          <p className="text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase">
             © {new Date().getFullYear()} Maarga Sri Lanka. All Rights Reserved.
           </p>
         </div>

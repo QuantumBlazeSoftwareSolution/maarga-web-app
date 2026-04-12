@@ -91,7 +91,12 @@ export default function StationItemsManagementPage() {
 
     if (res.success) {
       toast.success(res.message);
-      setFormData({ name: '', sinhalaName: '', description: '', itemType: 'fuel' });
+      setFormData({
+        name: '',
+        sinhalaName: '',
+        description: '',
+        itemType: 'fuel',
+      });
       fetchItems();
     } else {
       toast.error(res.message);
@@ -225,7 +230,10 @@ export default function StationItemsManagementPage() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase">
-                  Sinhala Name <span className="normal-case tracking-normal text-slate-400">(optional)</span>
+                  Sinhala Name{' '}
+                  <span className="tracking-normal text-slate-400 normal-case">
+                    (optional)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -398,7 +406,10 @@ export default function StationItemsManagementPage() {
                           type="text"
                           value={editData.sinhalaName || ''}
                           onChange={(e) =>
-                            setEditData({ ...editData, sinhalaName: e.target.value })
+                            setEditData({
+                              ...editData,
+                              sinhalaName: e.target.value,
+                            })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"

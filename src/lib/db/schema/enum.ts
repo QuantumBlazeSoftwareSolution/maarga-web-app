@@ -25,7 +25,11 @@ export const stationTypeEnumItems = ['fuel', 'gas', 'ev'] as const;
 export const stationTypeEnum = pgEnum('station_type', stationTypeEnumItems);
 
 // report status
-export const reportStatusEnumItems = ['pending', 'approved', 'suspended'] as const;
+export const reportStatusEnumItems = [
+  'pending',
+  'approved',
+  'suspended',
+] as const;
 export const reportStatusEnum = pgEnum('report_status', reportStatusEnumItems);
 
 export const districtEnumItems = [
@@ -56,3 +60,10 @@ export const districtEnumItems = [
   'Kegalle',
 ] as const;
 export const districtEnum = pgEnum('district', districtEnumItems);
+
+export const stationStatusEnumItems = [
+  'pending',
+  'approved',
+  'suspended',
+] as const;
+export const stationStatusEnum = pgEnum('status', stationStatusEnumItems);
