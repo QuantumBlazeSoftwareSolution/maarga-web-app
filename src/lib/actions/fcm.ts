@@ -49,7 +49,14 @@ export async function sendTestNotification(
   imageUrl?: string
 ) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/notifications/send`, {
+    // Determine the correct base URL depending on whether we are local or deployed on Vercel
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
+      ? process.env.NEXT_PUBLIC_BASE_URL 
+      : process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+
+    const res = await fetch(`${baseUrl}/api/v1/notifications/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
