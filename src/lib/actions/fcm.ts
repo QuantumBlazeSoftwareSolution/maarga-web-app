@@ -3,7 +3,7 @@
 import { db } from '@/src/lib/db';
 import { fcmTokensTable } from '@/src/lib/db/schema/fcm-tokens';
 import { usersTable } from '@/src/lib/db/schema/users';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 export async function getUsersWithFcmTokens() {
   try {
@@ -42,6 +42,8 @@ export async function getUsersWithFcmTokens() {
   }
 }
 
+import { getMessaging } from '@/src/lib/firebase-admin';
+
 export async function sendTestNotification(
   userIds: string[],
   title: string,
@@ -49,28 +51,66 @@ export async function sendTestNotification(
   imageUrl?: string
 ) {
   try {
-    // Determine the correct base URL depending on whether we are local or deployed on Vercel
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
-      ? process.env.NEXT_PUBLIC_BASE_URL 
-      : process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    if (!userIds || userIds.length === 0) throw new Error("Select at least one user.");
+    
+    const records = await db
+      .select({ token: fcmTokensTable.token })
+      .from(fcmTokensTable)
+      .where(inArray(fcmTokensTable.authId, userIds));
 
-    const res = await fetch(`${baseUrl}/api/v1/notifications/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': process.env.DEV_API_KEY || '',
+    const tokens = records.map((r) => r.token);
+    if (tokens.length === 0) throw new Error("No tokens registered for the selected users.");
+
+    const payload = {
+      tokens,
+      notification: {
+        title,
+        body,
+        ...(imageUrl && { imageUrl }),
       },
-      body: JSON.stringify({ userIds, title, body, imageUrl }),
-    });
+      android: {
+        priority: 'high' as const,
+        notification: {
+          sound: 'default',
+          channelId: 'high_importance_channel',
+          ...(imageUrl && { imageUrl }),
+        },
+      },
+    };
 
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.message || 'Failed to send notification');
+    const response = await getMessaging().sendEachForMulticast(payload);
+
+    let tokensToRemove: string[] = [];
+    if (response.failureCount > 0) {
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success && resp.error) {
+          const errorCode = resp.error.code;
+          if (
+            errorCode === 'messaging/invalid-registration-token' ||
+            errorCode === 'messaging/registration-token-not-registered'
+          ) {
+            tokensToRemove.push(tokens[idx]);
+          }
+        }
+      });
     }
 
-    return { success: true, data };
+    if (tokensToRemove.length > 0) {
+      await db
+        .delete(fcmTokensTable)
+        .where(inArray(fcmTokensTable.token, tokensToRemove));
+    }
+
+    return { 
+      success: true, 
+      data: { 
+        results: { 
+          successCount: response.successCount, 
+          failureCount: response.failureCount, 
+          cleanedUpTokens: tokensToRemove.length 
+        } 
+      } 
+    };
   } catch (error: any) {
     console.error('Send test notification error:', error);
     return { success: false, error: error.message };
