@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { stationTypeEnum, districtEnum } from './enum';
+import { stationTypeEnum, districtEnum, stationStatusEnum } from './enum';
 
 export const stationTable = pgTable('station', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -9,6 +9,7 @@ export const stationTable = pgTable('station', {
   latitude: text('latitude').notNull(),
   type: stationTypeEnum('type').notNull().default('fuel'),
   district: districtEnum('district'),
+  status: stationStatusEnum('status').notNull().default('pending'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
