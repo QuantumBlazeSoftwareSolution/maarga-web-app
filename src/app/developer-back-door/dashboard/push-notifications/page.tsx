@@ -100,7 +100,7 @@ export default function PushNotificationsTestPage() {
     const result = await sendTestNotification(selectedAuthIds, title, body, imageUrl);
     setSending(false);
 
-    if (result.success) {
+    if (result.success && result.data) {
       toast.success(
         `Sent! Success: ${result.data.results.successCount}, Failures: ${result.data.results.failureCount}`
       );
