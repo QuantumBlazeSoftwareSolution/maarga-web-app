@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/src/lib/db';
 import { fcmTokensTable } from '@/src/lib/db/schema/fcm-tokens';
 import { withAuth } from '@/src/lib/proxy';
-import { messaging } from '@/src/lib/firebase-admin';
+import { getMessaging } from '@/src/lib/firebase-admin';
 import { inArray } from 'drizzle-orm';
 
 /**
@@ -113,8 +113,8 @@ export const POST = withAuth(async (req: NextRequest) => {
         },
       };
 
-      // 2. Multicast send
-      const response = await messaging.sendEachForMulticast(payload);
+      // 2. Multicast send with the lazily initialized app
+      const response = await getMessaging().sendEachForMulticast(payload);
       
       successCount += response.successCount;
       failureCount += response.failureCount;
