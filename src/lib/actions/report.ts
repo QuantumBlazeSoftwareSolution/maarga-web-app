@@ -12,6 +12,12 @@ import { updateUserTrustScore } from '../db/user/update';
 import { getUserByAuthId } from '../db/user/read';
 import { getAllNewStationReports } from '../db/new-station/read';
 import { createNewStationReport } from '../db/new-station/write';
+import { db } from '../db';
+import { stationTable } from '../db/schema/station';
+import { itemsTable } from '../db/schema/items';
+import { eq, inArray } from 'drizzle-orm';
+import { getGeohashNeighbors } from '../utils/geohash';
+import { sendGeohashNotification } from './fcm';
 
 const CONFIRMATION_THRESHOLD = 3;
 const CONSENSUS_WINDOW_HOURS = 24;
@@ -132,6 +138,7 @@ async function runConsensusEngine(
   const recentRows = await getLatestItemReportsForStation(stationId, 30);
 
   let confirmedCount = 0;
+  const confirmedItems: { itemId: string; availability: string }[] = [];
 
   for (const item of reportedItems) {
     // Filter the rows specifically for this item and sort by latest (they are already sorted by DESC via query)
@@ -147,6 +154,7 @@ async function runConsensusEngine(
         item.availability as 'available' | 'low' | 'out',
       );
       confirmedCount++;
+      confirmedItems.push(item);
       continue;
     }
 
@@ -171,6 +179,7 @@ async function runConsensusEngine(
         item.availability as 'available' | 'low' | 'out',
       );
       confirmedCount++;
+      confirmedItems.push(item);
     }
   }
 
@@ -185,6 +194,53 @@ async function runConsensusEngine(
       trustScoreIncreased = true;
     }
     await updateUserTrustScore(currentUserId, newTrustScore);
+
+    // Trigger Geohash Grid Notifications
+    try {
+      const stationRecords = await db
+        .select({
+          latitude: stationTable.latitude,
+          longitude: stationTable.longitude,
+          name: stationTable.name,
+        })
+        .from(stationTable)
+        .where(eq(stationTable.id, stationId));
+
+      if (stationRecords.length > 0) {
+        const st = stationRecords[0];
+        const lat = parseFloat(st.latitude);
+        const lon = parseFloat(st.longitude);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          // Fetch item names for the detailed message
+          const itemIds = confirmedItems.map(i => i.itemId);
+          const itemsData = await db
+            .select({ id: itemsTable.id, name: itemsTable.name })
+            .from(itemsTable)
+            .where(inArray(itemsTable.id, itemIds));
+
+          const itemMap = new Map();
+          itemsData.forEach(i => itemMap.set(i.id, i.name));
+
+          const details = confirmedItems.map((i) => {
+            const name = itemMap.get(i.itemId) || 'Fuel';
+            return `${name}: ${i.availability.toUpperCase()}`;
+          }).join(' | ');
+
+          const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+          const messageBody = `${details}\nUpdated: ${timeStr} (Just now)`;
+
+          const geohashes = getGeohashNeighbors(lat, lon, 5);
+          await sendGeohashNotification(
+            geohashes,
+            `${st.name} Status Validated ✅`,
+            messageBody,
+            { stationId }
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Error sending geohash notification:', e);
+    }
   }
 
   return {
