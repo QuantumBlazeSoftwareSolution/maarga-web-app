@@ -50,7 +50,7 @@ export default function ApiDocsPage({ params }: ApiDocsPageProps) {
             {version === 'v1' ? 'Current Stable' : 'Archived'}
           </span>
           <Image
-            src="/favicon.ico"
+            src="/icon.png"
             alt="Maarga"
             width={32}
             height={32}
