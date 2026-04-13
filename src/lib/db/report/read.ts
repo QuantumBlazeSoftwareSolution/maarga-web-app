@@ -118,19 +118,17 @@ export async function getRecentReports(limit = 20) {
   }
 }
 
-export async function getRecentReportsForConsensus(
+export async function getLatestItemReportsForStation(
   stationId: string,
-  hours: number,
+  recordLimit = 30, // Fetches the latest 30 item-reports to guarantee we have enough history for the reported items
 ) {
   try {
-    const timeLimit = new Date();
-    timeLimit.setHours(timeLimit.getHours() - hours);
-
     return await db
       .select({
         itemId: reportItemsTable.itemId,
         availability: reportItemsTable.availability,
         trustScore: usersTable.trustScore,
+        createdAt: reportsTable.createdAt,
       })
       .from(reportsTable)
       .innerJoin(
@@ -138,14 +136,11 @@ export async function getRecentReportsForConsensus(
         eq(reportsTable.id, reportItemsTable.reportId),
       )
       .innerJoin(usersTable, eq(reportsTable.userId, usersTable.id))
-      .where(
-        and(
-          eq(reportsTable.stationId, stationId),
-          gte(reportsTable.createdAt, timeLimit),
-        ),
-      );
+      .where(eq(reportsTable.stationId, stationId))
+      .orderBy(desc(reportsTable.createdAt))
+      .limit(recordLimit);
   } catch (error) {
-    console.error('getRecentReportsForConsensus error:', error);
+    console.error('getLatestItemReportsForStation error:', error);
     return [];
   }
 }

@@ -102,6 +102,8 @@ export const POST = withAuth(async (req: NextRequest) => {
       message: result.message,
       reportId: result.reportId,
       confirmedItemsCount: result.confirmedItemsCount || 0,
+      trustScoreIncreased: result.trustScoreIncreased || false,
+      newTrustScore: result.newTrustScore,
       status: (result.confirmedItemsCount || 0) > 0 ? 'approved' : 'pending',
     });
   } catch (error) {
