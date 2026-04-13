@@ -27,3 +27,28 @@ export async function updateUserTrustScore(
     };
   }
 }
+
+export async function updateUserQRCodes(
+  authId: string,
+  qrCodes: { name: string; value: string }[],
+): Promise<DBOperationResponse> {
+  try {
+    await db
+      .update(usersTable)
+      .set({
+        qrCodes: qrCodes,
+      })
+      .where(eq(usersTable.authId, authId));
+
+    return {
+      status: true,
+      message: 'User QR codes updated successfully.',
+    };
+  } catch (error) {
+    console.error('Update user QR codes DB error:', error);
+    return {
+      status: false,
+      message: 'Failed to update user QR codes.',
+    };
+  }
+}

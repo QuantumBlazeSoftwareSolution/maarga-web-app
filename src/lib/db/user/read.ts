@@ -75,6 +75,7 @@ export async function getUserProfileByAuthId(authId: string) {
         id: user.id,
         trustScore: parseFloat(user.trustScore ?? '1.0'),
         totalReports: reportsCountResult[0].value,
+        qrCodes: user.qrCodes,
       },
     };
   } catch (error) {
