@@ -1,4 +1,9 @@
-import { numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { numeric, pgTable, text, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
+
+export interface QRCodeData {
+  name: string;
+  value: string;
+}
 
 export const usersTable = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -8,6 +13,9 @@ export const usersTable = pgTable('users', {
   trustScore: numeric('trust_score', { precision: 10, scale: 2 })
     .notNull()
     .default('0.0'),
+  qrCodes: jsonb('qr_codes')
+    .$type<QRCodeData[]>()
+    .default([]),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
