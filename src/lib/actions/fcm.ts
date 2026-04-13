@@ -116,3 +116,46 @@ export async function sendTestNotification(
     return { success: false, error: error.message };
   }
 }
+
+export async function sendGeohashNotification(
+  geohashes: string[],
+  title: string,
+  body: string,
+  data?: Record<string, string>
+) {
+  try {
+    const messaging = getMessaging();
+    
+    // Send a message to each geohash topic (e.g., 'geo_tc6u')
+    const promises = geohashes.map(async (hash) => {
+      const topic = `geo_${hash}`;
+      const payload = {
+        topic,
+        notification: {
+          title,
+          body,
+        },
+        data,
+        android: {
+          priority: 'high' as const,
+          notification: {
+            sound: 'default',
+            channelId: 'high_importance_channel',
+          },
+        },
+      };
+      
+      return messaging.send(payload).catch((e: any) => {
+        console.error(`Error sending to topic ${topic}:`, e);
+      });
+    });
+
+    await Promise.all(promises);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Send geohash notification error:', error);
+    return { success: false, error: error.message };
+  }
+}
+

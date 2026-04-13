@@ -3,7 +3,7 @@
 import {
   getAllReportsWithDetails as dbGetAllReports,
   getRecentReports as dbGetRecentReports,
-  getRecentReportsForConsensus,
+  getLatestItemReportsForStation,
 } from '../db/report/read';
 import { createReport, createReportItems } from '../db/report/write';
 import { updateReportStatus } from '../db/report/update';
@@ -12,6 +12,12 @@ import { updateUserTrustScore } from '../db/user/update';
 import { getUserByAuthId } from '../db/user/read';
 import { getAllNewStationReports } from '../db/new-station/read';
 import { createNewStationReport } from '../db/new-station/write';
+import { db } from '../db';
+import { stationTable } from '../db/schema/station';
+import { itemsTable } from '../db/schema/items';
+import { eq, inArray } from 'drizzle-orm';
+import { getGeohashNeighbors } from '../utils/geohash';
+import { sendGeohashNotification } from './fcm';
 
 const CONFIRMATION_THRESHOLD = 3;
 const CONSENSUS_WINDOW_HOURS = 24;
@@ -99,11 +105,22 @@ export async function submitReportAction(data: {
       message: consensusRes.message,
       reportId: report.id,
       confirmedItemsCount: consensusRes.confirmedItemsCount,
+      trustScoreIncreased: consensusRes.trustScoreIncreased,
+      newTrustScore: consensusRes.newTrustScore,
     };
   } catch (error) {
     console.error('submitReportAction error:', error);
     return { status: false, message: 'An internal error occurred.' };
   }
+}
+
+/**
+ * Helper to calculate points based on trust score
+ */
+function getPointsFromTrustScore(trustScore: number): number {
+  if (trustScore >= 3.0) return 3;
+  if (trustScore >= 2.0) return 2;
+  return 1;
 }
 
 /**
@@ -116,55 +133,120 @@ async function runConsensusEngine(
   currentUserTrustScore: number,
   reportedItems: { itemId: string; availability: string }[],
 ) {
-  // Fetch raw records from DB
-  const recentRows = await getRecentReportsForConsensus(
-    stationId,
-    CONSENSUS_WINDOW_HOURS,
-  );
-
-  // Business Logic: Tallying
-  const tallies: Record<string, Record<string, number>> = {};
-  for (const row of recentRows) {
-    if (!tallies[row.itemId]) {
-      tallies[row.itemId] = { available: 0, low: 0, out: 0 };
-    }
-    tallies[row.itemId][row.availability] =
-      (tallies[row.itemId][row.availability] ?? 0) +
-      (parseFloat(row.trustScore ?? '1') || 1);
-  }
+  // Fetch the absolute latest raw records from DB (regardless of time)
+  // This helps us evaluate the strict "last 3 reports" rule.
+  const recentRows = await getLatestItemReportsForStation(stationId, 30);
 
   let confirmedCount = 0;
+  const confirmedItems: { itemId: string; availability: string }[] = [];
+
   for (const item of reportedItems) {
-    const tally = tallies[item.itemId];
-    if (!tally) continue;
+    // Filter the rows specifically for this item and sort by latest (they are already sorted by DESC via query)
+    const itemHistory = recentRows.filter((r) => r.itemId === item.itemId);
 
-    const winningStatus = Object.keys(tally).reduce((a, b) =>
-      tally[a] > tally[b] ? a : b,
-    ) as 'available' | 'low' | 'out';
-
-    const winningScore = tally[winningStatus];
-
-    // Business Logic: Threshold check
-    if (winningScore >= CONFIRMATION_THRESHOLD) {
+    // Edge Case: The station has EXACTLY 0 previous reports for this item.
+    // Note: itemHistory includes the currently inserted report row, so length <= 1 means NO prior history.
+    if (itemHistory.length <= 1) {
+      // Instantly confirm to provide initial data to the station
       await updateStationItemAvailability(
         stationId,
         item.itemId,
-        winningStatus,
+        item.availability as 'available' | 'low' | 'out',
       );
       confirmedCount++;
+      confirmedItems.push(item);
+      continue;
+    }
+
+    // Normal path: Get the latest 3 records for this item strictly
+    const latest3 = itemHistory.slice(0, 3);
+
+    // Sum points for the status the user just reported within the latest 3
+    let totalPointsForReportedStatus = 0;
+
+    for (const row of latest3) {
+      if (row.availability === item.availability) {
+        const rowTrust = parseFloat(row.trustScore ?? '1.0') || 1.0;
+        totalPointsForReportedStatus += getPointsFromTrustScore(rowTrust);
+      }
+    }
+
+    // Business Logic: Threshold check
+    if (totalPointsForReportedStatus >= CONFIRMATION_THRESHOLD) {
+      await updateStationItemAvailability(
+        stationId,
+        item.itemId,
+        item.availability as 'available' | 'low' | 'out',
+      );
+      confirmedCount++;
+      confirmedItems.push(item);
     }
   }
 
   // Business Logic: Approval and Trust Score Reward
   let newTrustScore = currentUserTrustScore;
+  let trustScoreIncreased = false;
+
   if (confirmedCount > 0) {
     await updateReportStatus(currentReportId, 'approved');
     newTrustScore = Math.min(10.0, currentUserTrustScore + 0.5);
+    if (newTrustScore > currentUserTrustScore) {
+      trustScoreIncreased = true;
+    }
     await updateUserTrustScore(currentUserId, newTrustScore);
+
+    // Trigger Geohash Grid Notifications
+    try {
+      const stationRecords = await db
+        .select({
+          latitude: stationTable.latitude,
+          longitude: stationTable.longitude,
+          name: stationTable.name,
+        })
+        .from(stationTable)
+        .where(eq(stationTable.id, stationId));
+
+      if (stationRecords.length > 0) {
+        const st = stationRecords[0];
+        const lat = parseFloat(st.latitude);
+        const lon = parseFloat(st.longitude);
+        if (!isNaN(lat) && !isNaN(lon)) {
+          // Fetch item names for the detailed message
+          const itemIds = confirmedItems.map(i => i.itemId);
+          const itemsData = await db
+            .select({ id: itemsTable.id, name: itemsTable.name })
+            .from(itemsTable)
+            .where(inArray(itemsTable.id, itemIds));
+
+          const itemMap = new Map();
+          itemsData.forEach(i => itemMap.set(i.id, i.name));
+
+          const details = confirmedItems.map((i) => {
+            const name = itemMap.get(i.itemId) || 'Fuel';
+            return `${name}: ${i.availability.toUpperCase()}`;
+          }).join(' | ');
+
+          const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+          const messageBody = `${details}\nUpdated: ${timeStr} (Just now)`;
+
+          const geohashes = getGeohashNeighbors(lat, lon, 5);
+          await sendGeohashNotification(
+            geohashes,
+            `${st.name} Status Validated ✅`,
+            messageBody,
+            { stationId }
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Error sending geohash notification:', e);
+    }
   }
 
   return {
     confirmedItemsCount: confirmedCount,
+    trustScoreIncreased,
+    newTrustScore,
     message:
       confirmedCount > 0
         ? 'Consensus reached and records updated.'
