@@ -321,3 +321,24 @@ export async function verifyAndApproveStation(
     return { success: false, message: 'Failed to verify station' };
   }
 }
+
+/**
+ * Server Action to reject a station (sets level to 'rejected').
+ */
+export async function rejectStation(id: string) {
+  try {
+    await db
+      .update(stationTable)
+      .set({
+        // @ts-expect-error Valid enum value from schema
+        level: 'rejected',
+      })
+      .where(eq(stationTable.id, id));
+
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station rejected.' };
+  } catch (error) {
+    console.error('[REJECT STATION ERROR]', error);
+    return { success: false, message: 'Failed to reject station' };
+  }
+}

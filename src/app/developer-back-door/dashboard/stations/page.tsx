@@ -12,6 +12,7 @@ import {
   syncAllStationItems,
   updateStationCoordinates,
   verifyAndApproveStation,
+  rejectStation,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
 
@@ -87,11 +88,15 @@ export default function StationManagementPage() {
 
   // Tab Filtering State
   const [activeTab, setActiveTab] = useState('All');
-  const [mainTab, setMainTab] = useState<'Default' | 'Initialized'>('Default');
+  const [mainTab, setMainTab] = useState<
+    'Default' | 'Initialized' | 'Approved' | 'Rejected'
+  >('Default');
 
   // Pagination State
   const [defaultPage, setDefaultPage] = useState(1);
   const [initializedPage, setInitializedPage] = useState(1);
+  const [approvedPage, setApprovedPage] = useState(1);
+  const [rejectedPage, setRejectedPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
   // Custom Drag Scroll Refs & State
@@ -125,9 +130,13 @@ export default function StationManagementPage() {
 
   // Derive unique station names for tabs
   const mainTabStations = useMemo(() => {
-    return stations.filter((s) =>
-      mainTab === 'Initialized' ? s.level === 'initialized' : true,
-    );
+    const levelMap: Record<string, string> = {
+      Default: 'pending',
+      Initialized: 'initialized',
+      Approved: 'approved',
+      Rejected: 'rejected',
+    };
+    return stations.filter((s) => s.level === levelMap[mainTab]);
   }, [stations, mainTab]);
 
   const { uniqueNames, tabCounts } = useMemo(() => {
@@ -160,6 +169,8 @@ export default function StationManagementPage() {
   useEffect(() => {
     setDefaultPage(1);
     setInitializedPage(1);
+    setApprovedPage(1);
+    setRejectedPage(1);
   }, [searchQuery, activeTab, mainTab]);
 
   const handleSyncItems = async () => {
@@ -260,8 +271,13 @@ export default function StationManagementPage() {
   };
 
   const filteredStations = stations.filter((station) => {
-    if (mainTab === 'Initialized' && station.level !== 'initialized')
-      return false;
+    const levelMap: Record<string, string> = {
+      Default: 'pending',
+      Initialized: 'initialized',
+      Approved: 'approved',
+      Rejected: 'rejected',
+    };
+    if (station.level !== levelMap[mainTab]) return false;
 
     const matchesSearch =
       station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -273,9 +289,22 @@ export default function StationManagementPage() {
   });
 
   // Calculate Paginated Stations
-  const currentPage = mainTab === 'Default' ? defaultPage : initializedPage;
+  const currentPage =
+    mainTab === 'Default'
+      ? defaultPage
+      : mainTab === 'Initialized'
+        ? initializedPage
+        : mainTab === 'Approved'
+          ? approvedPage
+          : rejectedPage;
   const setCurrentPage =
-    mainTab === 'Default' ? setDefaultPage : setInitializedPage;
+    mainTab === 'Default'
+      ? setDefaultPage
+      : mainTab === 'Initialized'
+        ? setInitializedPage
+        : mainTab === 'Approved'
+          ? setApprovedPage
+          : setRejectedPage;
 
   const totalPages = Math.ceil(filteredStations.length / ITEMS_PER_PAGE);
   const paginatedStations = useMemo(() => {
@@ -483,35 +512,31 @@ export default function StationManagementPage() {
         {/* Right Column: List */}
         <div className="flex flex-1 flex-col lg:w-2/3">
           <div className="mb-6 flex items-center justify-between">
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setMainTab('Default');
-                  setActiveTab('All');
-                }}
-                style={{
-                  boxShadow: mainTab === 'Default' ? nmPressed : nmOuter,
-                  background: BASE,
-                  color: mainTab === 'Default' ? '#3B82F6' : '#64748B',
-                }}
-                className="rounded-xl px-6 py-2.5 text-sm font-black tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-95"
-              >
-                Default
-              </button>
-              <button
-                onClick={() => {
-                  setMainTab('Initialized');
-                  setActiveTab('All');
-                }}
-                style={{
-                  boxShadow: mainTab === 'Initialized' ? nmPressed : nmOuter,
-                  background: BASE,
-                  color: mainTab === 'Initialized' ? '#3B82F6' : '#64748B',
-                }}
-                className="rounded-xl px-6 py-2.5 text-sm font-black tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-95"
-              >
-                Initialized
-              </button>
+            <div className="flex flex-wrap gap-3">
+              {(
+                [
+                  ['Default', '#3B82F6'],
+                  ['Initialized', '#F59E0B'],
+                  ['Approved', '#10B981'],
+                  ['Rejected', '#EF4444'],
+                ] as const
+              ).map(([label, activeColor]) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setMainTab(label);
+                    setActiveTab('All');
+                  }}
+                  style={{
+                    boxShadow: mainTab === label ? nmPressed : nmOuter,
+                    background: BASE,
+                    color: mainTab === label ? activeColor : '#64748B',
+                  }}
+                  className="rounded-xl px-6 py-2.5 text-sm font-black tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             <div
               style={{ boxShadow: nmPressed, background: BASE }}
@@ -767,8 +792,8 @@ export default function StationManagementPage() {
                               e.stopPropagation();
                               toggleVerification(station.id);
                             }}
-                            className={`relative flex h-8 w-20 cursor-pointer items-center rounded-full p-1 transition-all duration-500 ease-out ${
-                              verifiedStations[station.id]
+                            className={`relative flex h-8 w-20 cursor-default items-center rounded-full p-1 transition-all duration-500 ease-out ${
+                              station.status === 'approved'
                                 ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'
                                 : 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'
                             }`}
@@ -776,12 +801,12 @@ export default function StationManagementPage() {
                             {/* Labels Layer (Opposite side of thumb) */}
                             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3.5 text-white">
                               <span
-                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${verifiedStations[station.id] ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : 'translate-x-2 scale-75 opacity-0'}`}
+                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${station.status === 'approved' ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : 'translate-x-2 scale-75 opacity-0'}`}
                               >
                                 ON
                               </span>
                               <span
-                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${!verifiedStations[station.id] ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : '-translate-x-2 scale-75 opacity-0'}`}
+                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${station.status !== 'approved' ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : '-translate-x-2 scale-75 opacity-0'}`}
                               >
                                 OFF
                               </span>
@@ -789,10 +814,10 @@ export default function StationManagementPage() {
 
                             {/* Circular Sliding Thumb */}
                             <div
-                              className={`cubic-bezier(0.34, 1.56, 0.64, 1) flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 ${verifiedStations[station.id] ? 'translate-x-12' : 'translate-x-0'}`}
+                              className={`cubic-bezier(0.34, 1.56, 0.64, 1) flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 ${station.status === 'approved' ? 'translate-x-12' : 'translate-x-0'}`}
                             >
                               <div
-                                className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${verifiedStations[station.id] ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${station.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`}
                               />
                             </div>
                           </div>
@@ -856,6 +881,39 @@ export default function StationManagementPage() {
                                   strokeLinejoin="round"
                                   strokeWidth={2.2}
                                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                            </button>
+                          )}
+
+                          {/* Reject button — Initialized tab only */}
+                          {mainTab === 'Initialized' && (
+                            <button
+                              title="Reject Station"
+                              onClick={async () => {
+                                if (!confirm(`Reject "${station.name}"?`))
+                                  return;
+                                const res = await rejectStation(station.id);
+                                if (res.success) {
+                                  toast.success(res.message);
+                                  fetchStations();
+                                } else {
+                                  toast.error(res.message);
+                                }
+                              }}
+                              className="group flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition-all hover:bg-white/50 active:scale-90"
+                            >
+                              <svg
+                                className="h-[18px] w-[18px]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.2}
+                                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
                                 />
                               </svg>
                             </button>
@@ -1013,7 +1071,10 @@ export default function StationManagementPage() {
           onClose={() => setVerificationStation(null)}
           station={verificationStation}
           onSave={async (data) => {
-            const res = await verifyAndApproveStation(verificationStation.id, data);
+            const res = await verifyAndApproveStation(
+              verificationStation.id,
+              data,
+            );
             if (res.success) {
               toast.success(res.message);
               setVerificationStation(null);
