@@ -11,7 +11,6 @@ export const ruleHandbookTable = pgTable('rule_handbook', {
   title: jsonb('title').$type<LocalizedContent>().notNull(),
   description: jsonb('description').$type<LocalizedContent>().notNull(),
   category: text('category').notNull(),
-  order: integer('order').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()
