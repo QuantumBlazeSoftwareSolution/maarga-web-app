@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from '..';
 import { StationItem, stationItemsTable } from '../schema/station-items';
-import { itemsTable } from '../schema/items';
+import { Item, itemsTable } from '../schema/items';
 
 export async function getItemsByStationId(
   stationId: string,
@@ -26,6 +26,16 @@ export async function getItemsByStationId(
     return stationItems;
   } catch (error) {
     console.error('[DB getItemsByStationId] Error:', error);
+    return [];
+  }
+}
+
+export async function getAllItems(): Promise<Item[]> {
+  try {
+    const items = await db.select().from(itemsTable);
+    return items;
+  } catch (error) {
+    console.error('[DB getAllItems] Error:', error);
     return [];
   }
 }

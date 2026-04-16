@@ -12,6 +12,8 @@ import {
   LogOut,
   LucideIcon,
 } from 'lucide-react';
+import { logout } from '@/src/lib/actions/auth';
+import { toast } from 'sonner';
 
 // ── Neumorphism tokens (same as dashboard) ─────────────────────────────────
 const BASE = '#E1E4E9';
@@ -200,8 +202,18 @@ export default function FloatingNav() {
   }, [pos, snapToCorner]);
 
   const handleNavClick = useCallback(
-    (path: string) => {
+    async (path: string, label: string) => {
       setIsOpen(false);
+      if (label === 'Sign Out') {
+        const res = await logout();
+        if (res.success) {
+          toast.success('Signed out successfully');
+          router.push(path);
+        } else {
+          toast.error('Failed to sign out');
+        }
+        return;
+      }
       router.push(path);
     },
     [router],
@@ -285,7 +297,7 @@ export default function FloatingNav() {
           <button
             key={item.label}
             data-nav-item="true"
-            onClick={() => handleNavClick(item.path)}
+            onClick={() => handleNavClick(item.path, item.label)}
             style={{
               display: 'flex',
               alignItems: 'center',
