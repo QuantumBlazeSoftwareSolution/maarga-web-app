@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { stationItemsTable } from '../db/schema/station-items';
 import { itemsTable } from '../db/schema/items';
 import { updateStationCoords } from '../db/stations/update';
+import { District, StationStatus } from '../db/schema/enum';
 
 /**
  * Server Action to bulk import stations with batching.
@@ -297,7 +298,12 @@ export async function updateStationCoordinates(
  */
 export async function verifyAndApproveStation(
   id: string,
-  data: { name: string; address: string; district: string; status: string },
+  data: {
+    name: string;
+    address: string;
+    district: District;
+    status: StationStatus;
+  },
 ) {
   try {
     await db
@@ -305,11 +311,8 @@ export async function verifyAndApproveStation(
       .set({
         name: data.name,
         address: data.address,
-        // @ts-expect-error Valid enum value from schema
         district: data.district || null,
-        // @ts-expect-error Valid enum value from schema
         status: data.status,
-        // @ts-expect-error Valid enum value from schema
         level: 'approved',
       })
       .where(eq(stationTable.id, id));
@@ -330,7 +333,6 @@ export async function rejectStation(id: string) {
     await db
       .update(stationTable)
       .set({
-        // @ts-expect-error Valid enum value from schema
         level: 'rejected',
       })
       .where(eq(stationTable.id, id));

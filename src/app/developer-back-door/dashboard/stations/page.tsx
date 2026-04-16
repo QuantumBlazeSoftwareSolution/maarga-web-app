@@ -15,6 +15,7 @@ import {
   rejectStation,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
+import { StationType } from '@/src/lib/db/schema/enum';
 
 const MapVerificationModal = dynamic(
   () => import('@/src/components/admin/MapVerificationModal'),
@@ -50,7 +51,13 @@ export default function StationManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Registration Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    address: string;
+    longitude: string;
+    latitude: string;
+    type: StationType;
+  }>({
     name: '',
     address: '',
     longitude: '',
@@ -213,7 +220,6 @@ export default function StationManagementPage() {
       address: formData.address,
       longitude: formData.longitude,
       latitude: formData.latitude,
-      // @ts-expect-error Valid enum from schema
       type: formData.type,
     });
 
@@ -465,7 +471,7 @@ export default function StationManagementPage() {
                   <select
                     value={formData.type}
                     onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
+                      setFormData({ ...formData, type: e.target.value as StationType })
                     }
                     style={{ boxShadow: nmPressed, background: BASE }}
                     className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 transition-all outline-none focus:ring-2 focus:ring-blue-300"
@@ -677,7 +683,7 @@ export default function StationManagementPage() {
                         <select
                           value={editData.type || 'fuel'}
                           onChange={(e) =>
-                            setEditData({ ...editData, type: e.target.value })
+                            setEditData({ ...editData, type: e.target.value as StationType })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
