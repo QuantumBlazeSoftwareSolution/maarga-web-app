@@ -11,8 +11,11 @@ import {
   deleteStation,
   syncAllStationItems,
   updateStationCoordinates,
+  verifyAndApproveStation,
+  rejectStation,
 } from '@/src/lib/actions/station';
 import { Station } from '@/src/lib/db/schema/station';
+import { StationType } from '@/src/lib/db/schema/enum';
 
 const MapVerificationModal = dynamic(
   () => import('@/src/components/admin/MapVerificationModal'),
@@ -48,7 +51,13 @@ export default function StationManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Registration Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    address: string;
+    longitude: string;
+    latitude: string;
+    type: StationType;
+  }>({
     name: '',
     address: '',
     longitude: '',
@@ -69,18 +78,33 @@ export default function StationManagementPage() {
   const [pickingStation, setPickingStation] = useState<Station | null>(null);
 
   // Verification Switch Simulation State
-  const [verifiedStations, setVerifiedStations] = useState<Record<string, boolean>>({});
+  const [verifiedStations, setVerifiedStations] = useState<
+    Record<string, boolean>
+  >({});
 
   const toggleVerification = (id: string) => {
-    setVerifiedStations(prev => ({ ...prev, [id]: !prev[id] }));
+    setVerifiedStations((prev) => ({ ...prev, [id]: !prev[id] }));
     const currentState = !verifiedStations[id];
-    toast.info(`Station verification ${currentState ? 'ENABLED' : 'DISABLED'}`, {
-      description: 'UI state updated (Simulation Mode)',
-    });
+    toast.info(
+      `Station verification ${currentState ? 'ENABLED' : 'DISABLED'}`,
+      {
+        description: 'UI state updated (Simulation Mode)',
+      },
+    );
   };
 
   // Tab Filtering State
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState('All');
+  const [mainTab, setMainTab] = useState<
+    'Default' | 'Initialized' | 'Approved' | 'Rejected'
+  >('Default');
+
+  // Pagination State
+  const [defaultPage, setDefaultPage] = useState(1);
+  const [initializedPage, setInitializedPage] = useState(1);
+  const [approvedPage, setApprovedPage] = useState(1);
+  const [rejectedPage, setRejectedPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Custom Drag Scroll Refs & State
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -112,12 +136,30 @@ export default function StationManagementPage() {
   };
 
   // Derive unique station names for tabs
-  const uniqueNames = useMemo(() => {
-    const names = Array.from(new Set(stations.map(s => s.name)))
-      .filter(name => name && name.trim() !== "")
+  const mainTabStations = useMemo(() => {
+    const levelMap: Record<string, string> = {
+      Default: 'pending',
+      Initialized: 'initialized',
+      Approved: 'approved',
+      Rejected: 'rejected',
+    };
+    return stations.filter((s) => s.level === levelMap[mainTab]);
+  }, [stations, mainTab]);
+
+  const { uniqueNames, tabCounts } = useMemo(() => {
+    const counts: Record<string, number> = { All: mainTabStations.length };
+    mainTabStations.forEach((s) => {
+      if (s.name && s.name.trim() !== '') {
+        counts[s.name] = (counts[s.name] || 0) + 1;
+      }
+    });
+
+    const names = Object.keys(counts)
+      .filter((name) => name !== 'All')
       .sort();
-    return ["All", ...names];
-  }, [stations]);
+
+    return { uniqueNames: ['All', ...names], tabCounts: counts };
+  }, [mainTabStations]);
 
   const fetchStations = async () => {
     setIsLoading(true);
@@ -129,6 +171,14 @@ export default function StationManagementPage() {
     }
     setIsLoading(false);
   };
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setDefaultPage(1);
+    setInitializedPage(1);
+    setApprovedPage(1);
+    setRejectedPage(1);
+  }, [searchQuery, activeTab, mainTab]);
 
   const handleSyncItems = async () => {
     const confirmSync = confirm(
@@ -170,7 +220,6 @@ export default function StationManagementPage() {
       address: formData.address,
       longitude: formData.longitude,
       latitude: formData.latitude,
-      // @ts-expect-error Valid enum from schema
       type: formData.type,
     });
 
@@ -228,14 +277,46 @@ export default function StationManagementPage() {
   };
 
   const filteredStations = stations.filter((station) => {
-    const matchesSearch = 
+    const levelMap: Record<string, string> = {
+      Default: 'pending',
+      Initialized: 'initialized',
+      Approved: 'approved',
+      Rejected: 'rejected',
+    };
+    if (station.level !== levelMap[mainTab]) return false;
+
+    const matchesSearch =
       station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       station.address.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesTab = activeTab === "All" || station.name === activeTab;
-    
+
+    const matchesTab = activeTab === 'All' || station.name === activeTab;
+
     return matchesSearch && matchesTab;
   });
+
+  // Calculate Paginated Stations
+  const currentPage =
+    mainTab === 'Default'
+      ? defaultPage
+      : mainTab === 'Initialized'
+        ? initializedPage
+        : mainTab === 'Approved'
+          ? approvedPage
+          : rejectedPage;
+  const setCurrentPage =
+    mainTab === 'Default'
+      ? setDefaultPage
+      : mainTab === 'Initialized'
+        ? setInitializedPage
+        : mainTab === 'Approved'
+          ? setApprovedPage
+          : setRejectedPage;
+
+  const totalPages = Math.ceil(filteredStations.length / ITEMS_PER_PAGE);
+  const paginatedStations = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredStations.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredStations, currentPage, ITEMS_PER_PAGE]);
 
   return (
     <div
@@ -390,7 +471,7 @@ export default function StationManagementPage() {
                   <select
                     value={formData.type}
                     onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
+                      setFormData({ ...formData, type: e.target.value as StationType })
                     }
                     style={{ boxShadow: nmPressed, background: BASE }}
                     className="w-full appearance-none rounded-xl border-0 px-4 py-3 text-sm font-bold text-slate-700 transition-all outline-none focus:ring-2 focus:ring-blue-300"
@@ -437,7 +518,32 @@ export default function StationManagementPage() {
         {/* Right Column: List */}
         <div className="flex flex-1 flex-col lg:w-2/3">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-700">All Stations</h2>
+            <div className="flex flex-wrap gap-3">
+              {(
+                [
+                  ['Default', '#3B82F6'],
+                  ['Initialized', '#F59E0B'],
+                  ['Approved', '#10B981'],
+                  ['Rejected', '#EF4444'],
+                ] as const
+              ).map(([label, activeColor]) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setMainTab(label);
+                    setActiveTab('All');
+                  }}
+                  style={{
+                    boxShadow: mainTab === label ? nmPressed : nmOuter,
+                    background: BASE,
+                    color: mainTab === label ? activeColor : '#64748B',
+                  }}
+                  className="rounded-xl px-6 py-2.5 text-sm font-black tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <div
               style={{ boxShadow: nmPressed, background: BASE }}
               className="flex items-center gap-2 rounded-xl px-4 py-2"
@@ -446,7 +552,7 @@ export default function StationManagementPage() {
               <span className="text-[11px] font-black tracking-widest text-slate-500 uppercase">
                 {searchQuery
                   ? `${filteredStations.length} FOUND`
-                  : `${stations.length} TOTAL`}
+                  : `${mainTabStations.length} TOTAL`}
               </span>
             </div>
           </div>
@@ -480,23 +586,22 @@ export default function StationManagementPage() {
 
           {/* ── Seamless Sticky Station Brand Tabs ─────────────────────────────── */}
           {uniqueNames.length > 2 && (
-            <div 
+            <div
               style={{ background: BASE }}
               className="sticky top-[72px] z-30 mb-4 border-b border-slate-200/40 transition-all duration-300"
             >
-              <div 
+              <div
                 ref={tabsRef}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                className={`flex w-full items-center gap-2 overflow-x-auto scrollbar-hide select-none py-4 px-4 transition-all
-                  ${isDragging ? 'cursor-grabbing active:scale-[0.99]' : 'cursor-grab'}`}
+                className={`scrollbar-hide flex w-full items-center gap-2 overflow-x-auto px-4 py-4 transition-all select-none ${isDragging ? 'cursor-grabbing active:scale-[0.99]' : 'cursor-grab'}`}
               >
                 {uniqueNames.map((name) => {
-                  const count = name === "All" ? stations.length : stations.filter(s => s.name === name).length;
+                  const count = tabCounts[name] || 0;
                   const isActive = activeTab === name;
-                  
+
                   return (
                     <button
                       key={name}
@@ -505,27 +610,30 @@ export default function StationManagementPage() {
                         if (draggedDistance.current > 5) return;
                         setActiveTab(name);
                       }}
-                      style={{ 
+                      style={{
                         boxShadow: isActive ? nmPressed : nmSubtle,
-                        background: BASE 
+                        background: BASE,
                       }}
-                      className={`group relative shrink-0 flex items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300
-                        ${isActive 
-                          ? 'text-emerald-600' 
-                          : 'text-slate-500 hover:text-slate-800'}`}
+                      className={`group relative flex shrink-0 items-center gap-2 rounded-2xl px-5 py-2.5 text-[10px] font-black tracking-widest uppercase transition-all duration-300 ${
+                        isActive
+                          ? 'text-emerald-600'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
                     >
                       {/* Smooth Neon Indicator */}
                       {isActive && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]" />
                       )}
-                      
+
                       {name}
-                      
+
                       {/* Compact Badge */}
-                      <span className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-all duration-300
-                        ${isActive 
-                          ? 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20' 
-                          : 'bg-slate-200 text-slate-400 group-hover:bg-slate-300/50'}`}
+                      <span
+                        className={`ml-1 rounded-lg px-2 py-0.5 text-[10px] transition-all duration-300 ${
+                          isActive
+                            ? 'bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20'
+                            : 'bg-slate-200 text-slate-400 group-hover:bg-slate-300/50'
+                        }`}
                       >
                         {count}
                       </span>
@@ -553,7 +661,7 @@ export default function StationManagementPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredStations.map((station) => (
+              {paginatedStations.map((station) => (
                 <div
                   key={station.id}
                   style={{ boxShadow: nmOuter, background: BASE }}
@@ -569,12 +677,13 @@ export default function StationManagementPage() {
                             setEditData({ ...editData, name: e.target.value })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
+                          placeholder="Station Name"
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
                         />
                         <select
                           value={editData.type || 'fuel'}
                           onChange={(e) =>
-                            setEditData({ ...editData, type: e.target.value })
+                            setEditData({ ...editData, type: e.target.value as StationType })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
@@ -591,6 +700,7 @@ export default function StationManagementPage() {
                           setEditData({ ...editData, address: e.target.value })
                         }
                         style={{ boxShadow: nmPressed, background: BASE }}
+                        placeholder="Station Address"
                         className="w-full appearance-none rounded-xl border-0 px-4 py-2 text-sm font-bold text-slate-700 outline-none"
                       />
                       <div className="grid grid-cols-2 gap-4">
@@ -604,6 +714,7 @@ export default function StationManagementPage() {
                             })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
+                          placeholder="Station Latitude"
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 font-mono text-sm font-bold text-slate-700 outline-none"
                         />
                         <input
@@ -616,6 +727,7 @@ export default function StationManagementPage() {
                             })
                           }
                           style={{ boxShadow: nmPressed, background: BASE }}
+                          placeholder="Station Longitude"
                           className="w-full appearance-none rounded-xl border-0 px-4 py-2 font-mono text-sm font-bold text-slate-700 outline-none"
                         />
                       </div>
@@ -680,83 +792,178 @@ export default function StationManagementPage() {
                       {/* Right Side Controls: Switch + Actions */}
                       <div className="flex flex-col items-end gap-3 pr-2">
                         {/* Verification Switch (TOP) */}
-                        <div className="flex flex-col items-end min-w-[76px]">
-                          <div 
+                        <div className="flex min-w-[76px] flex-col items-end">
+                          <div
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleVerification(station.id);
                             }}
-                            className={`relative flex h-8 w-20 cursor-pointer items-center rounded-full p-1 transition-all duration-500 ease-out
-                              ${verifiedStations[station.id] 
-                                ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]' 
-                                : 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'}`}
+                            className={`relative flex h-8 w-20 cursor-default items-center rounded-full p-1 transition-all duration-500 ease-out ${
+                              station.status === 'approved'
+                                ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'
+                                : 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.6),inset_0_0_10px_rgba(0,0,0,0.1)]'
+                            }`}
                           >
                             {/* Labels Layer (Opposite side of thumb) */}
-                            <div className="absolute inset-0 flex items-center justify-between px-3.5 pointer-events-none z-10 text-white">
-                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 translate-x-2'}`}>ON</span>
-                              <span className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${!verifiedStations[station.id] ? 'opacity-100 scale-110 drop-shadow-md translate-x-0' : 'opacity-0 scale-75 -translate-x-2'}`}>OFF</span>
+                            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3.5 text-white">
+                              <span
+                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${station.status === 'approved' ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : 'translate-x-2 scale-75 opacity-0'}`}
+                              >
+                                ON
+                              </span>
+                              <span
+                                className={`text-[9.5px] font-black tracking-tight transition-all duration-500 ${station.status !== 'approved' ? 'translate-x-0 scale-110 opacity-100 drop-shadow-md' : '-translate-x-2 scale-75 opacity-0'}`}
+                              >
+                                OFF
+                              </span>
                             </div>
-                            
+
                             {/* Circular Sliding Thumb */}
-                            <div 
-                              className={`h-6 w-6 rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) flex items-center justify-center
-                                ${verifiedStations[station.id] ? 'translate-x-12' : 'translate-x-0'}`}
+                            <div
+                              className={`cubic-bezier(0.34, 1.56, 0.64, 1) flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-[2px_2px_10px_rgba(0,0,0,0.2)] transition-all duration-500 ${station.status === 'approved' ? 'translate-x-12' : 'translate-x-0'}`}
                             >
-                              <div className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${verifiedStations[station.id] ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                              <div
+                                className={`h-1.5 w-1.5 rounded-full transition-all duration-500 ${station.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                              />
                             </div>
                           </div>
                         </div>
 
                         {/* Action Buttons (BOTTOM) */}
-                        <div 
+                        <div
                           style={{ boxShadow: nmPressed, background: BASE }}
                           className="flex items-center gap-1 rounded-2xl p-1.5"
                         >
-                          <button
-                            title="Verify on Satellite"
-                            onClick={() => setVerificationStation(station)}
-                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-emerald-500 transition-all hover:bg-white/50 active:scale-90"
-                          >
-                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </button>
+                          {/* Google map */}
+                          {mainTab === 'Initialized' && (
+                            <button
+                              title="Verify on Satellite"
+                              onClick={() => setVerificationStation(station)}
+                              className="group flex h-9 w-9 items-center justify-center rounded-xl text-emerald-500 transition-all hover:bg-white/50 active:scale-90"
+                            >
+                              <svg
+                                className="h-[18px] w-[18px]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
+                          )}
 
-                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
-
+                          {/* Leaflet map - now visible across all tabs */}
                           <button
                             title="Fix Coordinates"
                             onClick={() => setPickingStation(station)}
                             className="group flex h-9 w-9 items-center justify-center rounded-xl text-amber-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <svg
+                              className="h-[18px] w-[18px]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
                             </svg>
                           </button>
 
-                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+                          {/* Reject button — Initialized tab only */}
+                          {mainTab === 'Initialized' && (
+                            <button
+                              title="Reject Station"
+                              onClick={async () => {
+                                if (!confirm(`Reject "${station.name}"?`))
+                                  return;
+                                const res = await rejectStation(station.id);
+                                if (res.success) {
+                                  toast.success(res.message);
+                                  fetchStations();
+                                } else {
+                                  toast.error(res.message);
+                                }
+                              }}
+                              className="group flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition-all hover:bg-white/50 active:scale-90"
+                            >
+                              <svg
+                                className="h-[18px] w-[18px]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.2}
+                                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                                />
+                              </svg>
+                            </button>
+                          )}
+
+                          <div className="mx-0.5 h-4 w-px bg-slate-300/50" />
 
                           <button
                             title="Edit Station"
                             onClick={() => startEditing(station)}
                             className="group flex h-9 w-9 items-center justify-center rounded-xl text-blue-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            <svg
+                              className="h-[18px] w-[18px]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                              />
                             </svg>
                           </button>
 
-                          <div className="h-4 w-px bg-slate-300/50 mx-0.5" />
+                          <div className="mx-0.5 h-4 w-px bg-slate-300/50" />
 
                           <button
                             title="Delete Station"
                             onClick={() => handleDelete(station.id)}
                             className="group flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition-all hover:bg-white/50 active:scale-90"
                           >
-                            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="h-[18px] w-[18px]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           </button>
                         </div>
@@ -765,6 +972,98 @@ export default function StationManagementPage() {
                   )}
                 </div>
               ))}
+
+              {/* ── Pagination Controls ─────────────────────────────────── */}
+              {totalPages > 1 && (
+                <div className="mt-12 flex items-center justify-center gap-4">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.max(prev - 1, 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    style={{
+                      boxShadow: currentPage === 1 ? nmPressed : nmSubtle,
+                      background: BASE,
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all active:scale-95 disabled:opacity-40"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  <div
+                    style={{ boxShadow: nmPressed, background: BASE }}
+                    className="flex items-center gap-1 rounded-xl px-2 py-1"
+                  >
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum = currentPage;
+                      if (totalPages <= 5) pageNum = i + 1;
+                      else if (currentPage <= 3) pageNum = i + 1;
+                      else if (currentPage >= totalPages - 2)
+                        pageNum = totalPages - 4 + i;
+                      else pageNum = currentPage - 2 + i;
+
+                      const isCurrent = currentPage === pageNum;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => {
+                            setCurrentPage(pageNum);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className={`h-8 min-w-[32px] rounded-lg text-[10px] font-black transition-all ${
+                            isCurrent
+                              ? 'bg-blue-500 text-white shadow-lg'
+                              : 'text-slate-500 hover:bg-slate-200'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    style={{
+                      boxShadow:
+                        currentPage === totalPages ? nmPressed : nmSubtle,
+                      background: BASE,
+                    }}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition-all active:scale-95 disabled:opacity-40"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -774,9 +1073,20 @@ export default function StationManagementPage() {
         <MapVerificationModal
           isOpen={!!verificationStation}
           onClose={() => setVerificationStation(null)}
-          lat={verificationStation.latitude}
-          lng={verificationStation.longitude}
-          stationName={verificationStation.name}
+          station={verificationStation}
+          onSave={async (data) => {
+            const res = await verifyAndApproveStation(
+              verificationStation.id,
+              data as any,
+            );
+            if (res.success) {
+              toast.success(res.message);
+              setVerificationStation(null);
+              fetchStations();
+            } else {
+              toast.error(res.message);
+            }
+          }}
         />
       )}
 
@@ -796,6 +1106,7 @@ export default function StationManagementPage() {
             if (res.success) {
               toast.success(res.message);
               setPickingStation(null);
+              fetchStations();
             } else {
               toast.error(res.message);
             }

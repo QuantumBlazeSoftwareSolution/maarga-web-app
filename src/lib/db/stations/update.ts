@@ -18,7 +18,7 @@ export async function updateStationCoords(
   try {
     await db
       .update(stationTable)
-      .set({ latitude, longitude, updatedAt: new Date() })
+      .set({ latitude, longitude, level: 'initialized', updatedAt: new Date() })
       .where(eq(stationTable.id, id));
   } catch (error) {
     console.error('Error updating station coordinates:', error);

@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { stationItemsTable } from '../db/schema/station-items';
 import { itemsTable } from '../db/schema/items';
 import { updateStationCoords } from '../db/stations/update';
+import { District, StationStatus } from '../db/schema/enum';
 
 /**
  * Server Action to bulk import stations with batching.
@@ -288,5 +289,58 @@ export async function updateStationCoordinates(
   } catch (error) {
     console.error('[COORD UPDATE ERROR]', error);
     return { success: false, message: 'Failed to update coordinates' };
+  }
+}
+
+/**
+ * Server Action to verify and approve a station.
+ * Updates name, address, district, status and sets level to 'approved'.
+ */
+export async function verifyAndApproveStation(
+  id: string,
+  data: {
+    name: string;
+    address: string;
+    district: District;
+    status: StationStatus;
+  },
+) {
+  try {
+    await db
+      .update(stationTable)
+      .set({
+        name: data.name,
+        address: data.address,
+        district: data.district || null,
+        status: data.status,
+        level: 'approved',
+      })
+      .where(eq(stationTable.id, id));
+
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station verified and approved!' };
+  } catch (error) {
+    console.error('[VERIFY APPROVE ERROR]', error);
+    return { success: false, message: 'Failed to verify station' };
+  }
+}
+
+/**
+ * Server Action to reject a station (sets level to 'rejected').
+ */
+export async function rejectStation(id: string) {
+  try {
+    await db
+      .update(stationTable)
+      .set({
+        level: 'rejected',
+      })
+      .where(eq(stationTable.id, id));
+
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station rejected.' };
+  } catch (error) {
+    console.error('[REJECT STATION ERROR]', error);
+    return { success: false, message: 'Failed to reject station' };
   }
 }

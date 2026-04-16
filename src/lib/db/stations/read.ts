@@ -1,6 +1,6 @@
 'use server';
 
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '../';
 import { Station, stationTable } from '../schema/station';
 import { stationItemsTable } from '../schema/station-items';
@@ -44,13 +44,44 @@ export type EnrichedStation = Station & {
 // Uses two single bulk queries (no N+1) and joins in TypeScript:
 //   1. LEFT JOIN station_items + items → all availability data for all stations
 //   2. Subquery using DISTINCT ON → one latest approved report per station
-export async function getStationsEnriched(): Promise<EnrichedStation[]> {
+export async function getStationsEnriched(filters?: {
+  district?: string;
+  itemId?: string;
+}): Promise<EnrichedStation[]> {
   try {
-    // Query 1: Bulk fetch all stations
-    const stations = await db.select().from(stationTable);
+    // Query 1: Bulk fetch stations with optional filters
+    const conditions = [];
+    conditions.push(eq(stationTable.status, 'approved'));
+
+    if (filters?.district) {
+      conditions.push(eq(stationTable.district, filters.district as any));
+    }
+
+    if (filters?.itemId) {
+      // Find station IDs that have the requested item
+      const stationsWithItem = await db
+        .select({ id: stationItemsTable.stationId })
+        .from(stationItemsTable)
+        .where(eq(stationItemsTable.itemId, filters.itemId));
+
+      const stationIds = stationsWithItem.map((s) => s.id);
+
+      if (stationIds.length === 0) {
+        return []; // No stations found with this item
+      }
+
+      conditions.push(inArray(stationTable.id, stationIds));
+    }
+
+    const stations = await db
+      .select()
+      .from(stationTable)
+      .where(and(...conditions));
     if (stations.length === 0) return [];
 
-    // Query 2: Bulk fetch all station items joined with item names
+    const stationIds = stations.map((s) => s.id);
+
+    // Query 2: Bulk fetch station items for THESE stations only
     const allItems = await db
       .select({
         stationId: stationItemsTable.stationId,
@@ -61,9 +92,10 @@ export async function getStationsEnriched(): Promise<EnrichedStation[]> {
         availability: stationItemsTable.availability,
       })
       .from(stationItemsTable)
-      .leftJoin(itemsTable, eq(stationItemsTable.itemId, itemsTable.id));
+      .leftJoin(itemsTable, eq(stationItemsTable.itemId, itemsTable.id))
+      .where(inArray(stationItemsTable.stationId, stationIds));
 
-    // Query 3: Bulk fetch the latest approved report per station
+    // Query 3: Bulk fetch the latest approved report for THESE stations only
     // We fetch all approved reports ordered by desc, then deduplicate in TS
     const allReports = await db
       .select({
@@ -76,7 +108,12 @@ export async function getStationsEnriched(): Promise<EnrichedStation[]> {
         updatedAt: reportsTable.updatedAt,
       })
       .from(reportsTable)
-      .where(eq(reportsTable.status, 'approved'))
+      .where(
+        and(
+          eq(reportsTable.status, 'approved'),
+          inArray(reportsTable.stationId, stationIds),
+        ),
+      )
       .orderBy(desc(reportsTable.updatedAt));
 
     // Build lookup maps for fast O(1) access
