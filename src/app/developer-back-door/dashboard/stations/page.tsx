@@ -857,34 +857,32 @@ export default function StationManagementPage() {
                             </button>
                           )}
 
-                          {/* Leaflet map */}
-                          {mainTab === 'Default' && (
-                            <button
-                              title="Fix Coordinates"
-                              onClick={() => setPickingStation(station)}
-                              className="group flex h-9 w-9 items-center justify-center rounded-xl text-amber-500 transition-all hover:bg-white/50 active:scale-90"
+                          {/* Leaflet map - now visible across all tabs */}
+                          <button
+                            title="Fix Coordinates"
+                            onClick={() => setPickingStation(station)}
+                            className="group flex h-9 w-9 items-center justify-center rounded-xl text-amber-500 transition-all hover:bg-white/50 active:scale-90"
+                          >
+                            <svg
+                              className="h-[18px] w-[18px]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
                             >
-                              <svg
-                                className="h-[18px] w-[18px]"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.2}
-                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.2}
-                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                              </svg>
-                            </button>
-                          )}
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                            </svg>
+                          </button>
 
                           {/* Reject button — Initialized tab only */}
                           {mainTab === 'Initialized' && (
@@ -1102,6 +1100,7 @@ export default function StationManagementPage() {
             if (res.success) {
               toast.success(res.message);
               setPickingStation(null);
+              fetchStations();
             } else {
               toast.error(res.message);
             }
