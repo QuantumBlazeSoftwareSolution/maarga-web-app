@@ -290,3 +290,34 @@ export async function updateStationCoordinates(
     return { success: false, message: 'Failed to update coordinates' };
   }
 }
+
+/**
+ * Server Action to verify and approve a station.
+ * Updates name, address, district, status and sets level to 'approved'.
+ */
+export async function verifyAndApproveStation(
+  id: string,
+  data: { name: string; address: string; district: string; status: string },
+) {
+  try {
+    await db
+      .update(stationTable)
+      .set({
+        name: data.name,
+        address: data.address,
+        // @ts-expect-error Valid enum value from schema
+        district: data.district || null,
+        // @ts-expect-error Valid enum value from schema
+        status: data.status,
+        // @ts-expect-error Valid enum value from schema
+        level: 'approved',
+      })
+      .where(eq(stationTable.id, id));
+
+    revalidatePath('/developer-back-door/dashboard/stations');
+    return { success: true, message: 'Station verified and approved!' };
+  } catch (error) {
+    console.error('[VERIFY APPROVE ERROR]', error);
+    return { success: false, message: 'Failed to verify station' };
+  }
+}
