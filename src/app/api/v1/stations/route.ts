@@ -10,6 +10,17 @@ import { getStationsEnriched } from '@/src/lib/db/stations/read';
  *     description: Returns a full list of all fuel stations currently registered in the Maarga system.
  *     tags:
  *       - Stations
+ *     parameters:
+ *       - in: query
+ *         name: district
+ *         schema:
+ *           type: string
+ *         description: Filter stations by district name (e.g., Colombo)
+ *       - in: query
+ *         name: item
+ *         schema:
+ *           type: string
+ *         description: Filter stations by fuel item ID (UUID)
  *     responses:
  *       200:
  *         description: A collection of fuel stations
@@ -79,13 +90,18 @@ import { getStationsEnriched } from '@/src/lib/db/stations/read';
  *       500:
  *         description: Server-side failure while retrieving stations
  */
-export const GET = withAuth(async (_req: NextRequest) => {
+export const GET = withAuth(async (req: NextRequest) => {
   try {
-    const stations = await getStationsEnriched();
-    const filteredStations = stations.filter(
-      (station) => station.status === 'approved',
-    );
-    return NextResponse.json(filteredStations);
+    const { searchParams } = new URL(req.url);
+    const district = searchParams.get('district');
+    const itemId = searchParams.get('item');
+
+    const stations = await getStationsEnriched({
+      district: district || undefined,
+      itemId: itemId || undefined,
+    });
+
+    return NextResponse.json(stations);
   } catch (error: unknown) {
     console.error('[API v1 Stations] Error:', error);
     return NextResponse.json(
