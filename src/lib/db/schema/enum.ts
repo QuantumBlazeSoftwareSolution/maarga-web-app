@@ -67,3 +67,12 @@ export const stationStatusEnumItems = [
   'suspended',
 ] as const;
 export const stationStatusEnum = pgEnum('status', stationStatusEnumItems);
+
+export const approvalLevelEnumItems = [
+  'pending',
+  'initialized',
+  'approved',
+  'rejected',
+] as const;
+
+export const approvalLevelEnum = pgEnum('level', approvalLevelEnumItems);
