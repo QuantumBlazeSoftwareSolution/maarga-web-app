@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import FloatingNav from '@/src/components/admin/FloatingNav';
 import { getSystemStats } from '@/src/lib/actions/system';
+import { logout } from '@/src/lib/actions/auth';
 
 // ─── Neumorphism design tokens ───────────────────────────────────────────────
 // Base: #E1E4E9  Shadow-dark: #bebec0  Shadow-light: #ffffff
@@ -114,9 +115,14 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = () => {
-    toast.success('Signed out successfully');
-    router.push('/developer-back-door/login');
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res.success) {
+      toast.success('Signed out successfully');
+      router.push('/developer-back-door/login');
+    } else {
+      toast.error('Failed to logout');
+    }
   };
 
   // System load value 0–100 mapped to arc 135° → 405° (270° sweep)
