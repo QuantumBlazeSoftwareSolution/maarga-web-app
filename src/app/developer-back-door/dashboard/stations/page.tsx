@@ -1077,7 +1077,7 @@ export default function StationManagementPage() {
           onSave={async (data) => {
             const res = await verifyAndApproveStation(
               verificationStation.id,
-              data,
+              data as any,
             );
             if (res.success) {
               toast.success(res.message);
