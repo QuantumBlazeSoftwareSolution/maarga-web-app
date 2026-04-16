@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import FloatingNav from '@/src/components/admin/FloatingNav';
+import { toast } from 'sonner';
 import {
   BookOpen,
   TriangleAlert,
@@ -12,7 +13,36 @@ import {
   Trash2,
   X,
   Check,
+  RefreshCw,
 } from 'lucide-react';
+import {
+  getRules,
+  createRule,
+  editRule,
+  removeRule,
+} from '@/src/lib/actions/rule-handbook';
+import {
+  getTrafficSigns,
+  createTrafficSign,
+  editTrafficSign,
+  removeTrafficSign,
+} from '@/src/lib/actions/traffic-sign';
+import {
+  getFines,
+  createFine,
+  editFine,
+  removeFine,
+} from '@/src/lib/actions/fine-guide';
+import {
+  getEmergencyContacts,
+  createEmergencyContact,
+  editEmergencyContact,
+  removeEmergencyContact,
+} from '@/src/lib/actions/emergency-contacts';
+import type { RuleHandbook } from '@/src/lib/db/schema/rule-handbook';
+import type { TrafficSign } from '@/src/lib/db/schema/traffic-sign';
+import type { FineGuide } from '@/src/lib/db/schema/fine-guide';
+import type { EmergencyContact } from '@/src/lib/db/schema/emergency-contacts';
 
 // ── Neumorphism tokens ─────────────────────────────────
 const BASE = '#E1E4E9';
@@ -20,73 +50,13 @@ const nmOuter = '6px 6px 14px #c0c3c8, -6px -6px 14px #ffffff';
 const nmPressed = 'inset 4px 4px 10px #c0c3c8, inset -4px -4px 10px #ffffff';
 const nmSubtle = '3px 3px 8px #c0c3c8, -3px -3px 8px #ffffff';
 
-// ── Types ──────────────────────────────────────────────
+// ── Localized content type ─────────────────────────────
 interface LocalizedContent { en: string; si: string; }
-
-interface RuleHandbook {
-  id: string;
-  title: LocalizedContent;
-  description: LocalizedContent;
-  category: string;
-}
-
-interface TrafficSign {
-  id: string;
-  name: LocalizedContent;
-  description: LocalizedContent;
-  imageUrl: string;
-  category: string;
-}
-
-interface FineGuide {
-  id: string;
-  offense: LocalizedContent;
-  description: LocalizedContent;
-  fineAmount: string;
-  section: string | null;
-}
-
-interface EmergencyContact {
-  id: string;
-  name: LocalizedContent;
-  description: LocalizedContent;
-  phone: string;
-  category: string;
-}
-
-// ── Mock Data ──────────────────────────────────────────
-const mockRules: RuleHandbook[] = [
-  { id: '1', title: { en: 'Speed Limits', si: 'වේග සීමා' }, description: { en: 'Urban roads: 50 km/h, Highways: 100 km/h, Expressways: 100 km/h.', si: 'නාගරික මාර්ග: 50 km/h, අධිවේගී: 100 km/h.' }, category: 'General' },
-  { id: '2', title: { en: 'Overtaking Rules', si: 'ඉදිරි යාමේ නීති' }, description: { en: 'Only overtake on the right side. Do not overtake at junctions or pedestrian crossings.', si: 'දකුණු පසින් පමණක් ඉදිරි යන්න. හන්දිවල ඉදිරි නොයන්න.' }, category: 'Overtaking' },
-  { id: '3', title: { en: 'Seatbelt Regulations', si: 'ආසන පටි රෙගුලාසි' }, description: { en: 'All occupants in the front and rear seats must wear seat belts at all times.', si: 'ඉදිරිපස හා පසුපස ආසනවල සිටින සියලු දෙනා සීට් බෙල්ට් පැළඳිය යුතුය.' }, category: 'Safety' },
-  { id: '4', title: { en: 'Mobile Phone Use', si: 'ජංගම දුරකථන භාවිතය' }, description: { en: 'Using a handheld mobile phone while driving is strictly prohibited.', si: 'රිය පදවනු ලබන අතරතුර ජංගම දුරකථනය අතේ ගෙන භාවිතා කිරීම සපුරා තහනම්.' }, category: 'Prohibited' },
-];
-
-const mockSigns: TrafficSign[] = [
-  { id: '1', name: { en: 'Stop Sign', si: 'නවත්වන්න' }, description: { en: 'You must come to a complete stop and yield to all traffic.', si: 'ඔබ සම්පූර්ණයෙන්ම නතර විය යුතු අතර සියලු රථ වාහනවලට ඉඩ දිය යුතුය.' }, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/MUTCD_R1-1.svg/96px-MUTCD_R1-1.svg.png', category: 'Regulatory' },
-  { id: '2', name: { en: 'No Entry', si: 'ඇතුළු නොවීම' }, description: { en: 'Entry to the road ahead is prohibited.', si: 'ඉදිරිපස මාර්ගයට ඇතුළු වීම තහනම්ය.' }, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/MUTCD_R5-1.svg/96px-MUTCD_R5-1.svg.png', category: 'Regulatory' },
-  { id: '3', name: { en: 'Give Way', si: 'ඉඩ දෙන්න' }, description: { en: 'Slow down and give priority to vehicles on the main road.', si: 'මාර්ගය මත රථ වාහනවලට ප්‍රමුඛතාව දෙන්න.' }, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/UK_traffic_sign_602.svg/96px-UK_traffic_sign_602.svg.png', category: 'Regulatory' },
-  { id: '4', name: { en: 'Sharp Bend Ahead', si: 'ඉදිරියේ තියුණු වමොරු' }, description: { en: 'A sharp bend is ahead, reduce speed.', si: 'ඉදිරිපස තියුණු හැරවීමක් ඇත, වේගය අඩු කරන්න.' }, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UK_traffic_sign_512.svg/96px-UK_traffic_sign_512.svg.png', category: 'Warning' },
-];
-
-const mockFines: FineGuide[] = [
-  { id: '1', offense: { en: 'Exceeding Speed Limit', si: 'වේග සීමාව ඉක්මවීම' }, description: { en: 'Driving beyond the defined speed limit on any road.', si: 'ඕනෑම මාර්ගයක නිශ්චිත වේග සීමාව ඉකමවා රිය පැදවීම.' }, fineAmount: '3000', section: 'Section 141' },
-  { id: '2', offense: { en: 'Using Mobile Phone While Driving', si: 'රිය පැදවීමේදී ජංගම දුරකථනය භාවිතය' }, description: { en: 'Using a handheld device while operating a vehicle.', si: 'රිය ක්‍රියාත්මක කිරීමේදී ජංගම උපකරණයක් æaවිතා කිරීම.' }, fineAmount: '2000', section: 'Section 152' },
-  { id: '3', offense: { en: 'Not Wearing Seatbelt', si: 'ආසන පටිය නොදැමීම' }, description: { en: 'Failure to wear a seatbelt as the driver or passenger.', si: 'රියැදුරා හෝ මගියා ලෙස ආසන පටිය නොදැමීම.' }, fineAmount: '1000', section: 'Section 148B' },
-  { id: '4', offense: { en: 'Parking in a No-Parking Zone', si: 'ස්ථානගත කිරීම තහනම් ස්ථානවල ගාල් කිරීම' }, description: { en: 'Leaving a vehicle in a zone designated as no-parking.', si: 'ස්ථානගත කිරීම තහනම් ස්ථානයක රථයක් සිටවීම.' }, fineAmount: '1500', section: null },
-];
-
-const mockContacts: EmergencyContact[] = [
-  { id: '1', name: { en: 'Police Emergency', si: 'පොලිස් හදිසි' }, description: { en: 'National emergency line for the Sri Lanka Police.', si: 'ශ්‍රී ලංකා පොලිසිය සඳහා ජාතික හදිසි මාර්ගය.' }, phone: '119', category: 'Police' },
-  { id: '2', name: { en: 'Ambulance Service', si: 'ගිලන්රථ සේවය' }, description: { en: 'Call for immediate medical emergency assistance.', si: 'වඩාත් ඉම් මෛද්‍ය හදිසි ආධාරය සඳහා අමතන්න.' }, phone: '1990', category: 'Medical' },
-  { id: '3', name: { en: 'Fire & Rescue', si: 'ගිනි නිවීම සහ ගලවා ගැනීම' }, description: { en: 'Sri Lanka Fire and Rescue Services.', si: 'ශ්‍රී ලංකා ගිනි නිවීම හා ගලවා ගැනීමේ සේවා.' }, phone: '111', category: 'Fire' },
-  { id: '4', name: { en: 'Road Breakdown Assistance', si: 'මාර්ග බිඳ වැටීමේ ආධාරය' }, description: { en: 'AA Ceylon roadside assistance for vehicle breakdowns.', si: 'රථ බිඳ වැටීම් සඳහා AA Ceylon ආධාරය.' }, phone: '011-2423888', category: 'Breakdown' },
-];
 
 // ── Category badge colors ─────────────────────────────
 const categoryColor: Record<string, string> = {
   General: '#3B82F6', Overtaking: '#F59E0B', Safety: '#10B981', Prohibited: '#EF4444',
-  Regulatory: '#6366F1', Warning: '#F59E0B', Warning2: '#F97316',
+  Regulatory: '#6366F1', Warning: '#F59E0B',
   Police: '#3B82F6', Medical: '#10B981', Fire: '#EF4444', Breakdown: '#F59E0B',
 };
 
@@ -113,7 +83,7 @@ function CategoryBadge({ label }: { label: string }) {
   const color = categoryColor[label] ?? '#64748B';
   return (
     <span
-      className="rounded-lg px-2 py-0.5 text-[10px] font-black tracking-widest uppercase"
+      className="rounded-lg px-2 py-0.5 text-[10px] font-black tracking-widest uppercase whitespace-nowrap"
       style={{ color, background: `${color}15`, border: `1px solid ${color}30` }}
     >
       {label}
@@ -121,14 +91,21 @@ function CategoryBadge({ label }: { label: string }) {
   );
 }
 
-// ── Modal ─────────────────────────────────────────────
+function Spinner() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(4px)' }}>
       <div className="relative w-full max-w-lg rounded-2xl p-8" style={{ background: BASE, boxShadow: nmOuter }}>
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-lg font-black text-slate-700">{title}</h3>
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}>
             <X size={16} className="text-slate-500" />
           </button>
         </div>
@@ -159,36 +136,66 @@ function Input({ value, onChange, placeholder }: { value: string; onChange: (v: 
   );
 }
 
+function SaveCancelBtns({ onSave, onCancel, saving }: { onSave: () => void; onCancel: () => void; saving: boolean }) {
+  return (
+    <div className="flex gap-3 pt-2">
+      <button onClick={onSave} disabled={saving} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-50" style={{ background: BASE, boxShadow: nmOuter }}>
+        <Check size={14} /> {saving ? 'Saving...' : 'Save'}
+      </button>
+      <button onClick={onCancel} className="flex-1 rounded-xl py-3 text-xs font-black tracking-widest text-slate-500 uppercase" style={{ background: BASE, boxShadow: nmSubtle }}>Cancel</button>
+    </div>
+  );
+}
+
 // ── Rules Tab ─────────────────────────────────────────
 function RulesTab() {
-  const [items, setItems] = useState<RuleHandbook[]>(mockRules);
+  const [items, setItems] = useState<RuleHandbook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<RuleHandbook | null>(null);
   const [form, setForm] = useState({ titleEn: '', titleSi: '', descEn: '', descSi: '', category: 'General' });
 
-  const openAdd = () => {
-    setEditing(null);
-    setForm({ titleEn: '', titleSi: '', descEn: '', descSi: '', category: 'General' });
-    setShowModal(true);
-  };
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await getRules();
+    if (res.success) setItems(res.data as RuleHandbook[]);
+    else toast.error('Failed to load rules');
+    setLoading(false);
+  }, []);
 
+  useEffect(() => { load(); }, [load]);
+
+  const openAdd = () => { setEditing(null); setForm({ titleEn: '', titleSi: '', descEn: '', descSi: '', category: 'General' }); setShowModal(true); };
   const openEdit = (item: RuleHandbook) => {
     setEditing(item);
-    setForm({ titleEn: item.title.en, titleSi: item.title.si, descEn: item.description.en, descSi: item.description.si, category: item.category });
+    const t = item.title as LocalizedContent;
+    const d = item.description as LocalizedContent;
+    setForm({ titleEn: t.en, titleSi: t.si, descEn: d.en, descSi: d.si, category: item.category });
     setShowModal(true);
   };
 
-  const save = () => {
-    if (!form.titleEn) return;
-    if (editing) {
-      setItems(items.map(i => i.id === editing.id ? { ...i, title: { en: form.titleEn, si: form.titleSi }, description: { en: form.descEn, si: form.descSi }, category: form.category } : i));
-    } else {
-      setItems([...items, { id: Date.now().toString(), title: { en: form.titleEn, si: form.titleSi }, description: { en: form.descEn, si: form.descSi }, category: form.category }]);
-    }
-    setShowModal(false);
+  const save = async () => {
+    if (!form.titleEn.trim()) { toast.error('English title is required'); return; }
+    setSaving(true);
+    const payload = {
+      title: { en: form.titleEn, si: form.titleSi },
+      description: { en: form.descEn, si: form.descSi },
+      category: form.category,
+    };
+    const res = editing
+      ? await editRule(editing.id, payload)
+      : await createRule(payload as any);
+    if (res.success) { toast.success(res.message); setShowModal(false); load(); }
+    else toast.error(res.message);
+    setSaving(false);
   };
 
-  const del = (id: string) => setItems(items.filter(i => i.id !== id));
+  const del = async (id: string) => {
+    const res = await removeRule(id);
+    if (res.success) { toast.success(res.message); load(); }
+    else toast.error(res.message);
+  };
 
   return (
     <>
@@ -198,26 +205,33 @@ function RulesTab() {
           <Plus size={14} /> Add Rule
         </button>
       </div>
-      <div className="space-y-3">
-        {items.map(item => (
-          <div key={item.id} className="rounded-2xl p-5 transition-all" style={{ background: BASE, boxShadow: nmOuter }}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex items-center gap-2">
-                  <LocalizedBadge content={item.title} />
-                  <CategoryBadge label={item.category} />
+      {loading ? <Spinner /> : (
+        <div className="space-y-3">
+          {items.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">No rules yet. Add one!</p>}
+          {items.map(item => {
+            const t = item.title as LocalizedContent;
+            const d = item.description as LocalizedContent;
+            return (
+              <div key={item.id} className="rounded-2xl p-5" style={{ background: BASE, boxShadow: nmOuter }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <LocalizedBadge content={t} />
+                      <CategoryBadge label={item.category} />
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">{d.en}</p>
+                    <p className="text-xs text-slate-400 leading-relaxed">{d.si}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
+                    <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">{item.description.en}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">{item.description.si}</p>
               </div>
-              <div className="flex shrink-0 gap-2">
-                <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
-                <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
       {showModal && (
         <Modal title={editing ? 'Edit Rule' : 'Add Rule'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
@@ -228,10 +242,7 @@ function RulesTab() {
             <Field label="Description (English)"><Input value={form.descEn} onChange={v => setForm({ ...form, descEn: v })} placeholder="English description..." /></Field>
             <Field label="Description (Sinhala)"><Input value={form.descSi} onChange={v => setForm({ ...form, descSi: v })} placeholder="Sinhala description..." /></Field>
             <Field label="Category"><Input value={form.category} onChange={v => setForm({ ...form, category: v })} placeholder="General" /></Field>
-            <div className="flex gap-3 pt-2">
-              <button onClick={save} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmOuter }}><Check size={14} /> Save</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 rounded-xl py-3 text-xs font-black tracking-widest text-slate-500 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}>Cancel</button>
-            </div>
+            <SaveCancelBtns onSave={save} onCancel={() => setShowModal(false)} saving={saving} />
           </div>
         </Modal>
       )}
@@ -241,21 +252,54 @@ function RulesTab() {
 
 // ── Signs Tab ─────────────────────────────────────────
 function SignsTab() {
-  const [items, setItems] = useState<TrafficSign[]>(mockSigns);
+  const [items, setItems] = useState<TrafficSign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<TrafficSign | null>(null);
   const [form, setForm] = useState({ nameEn: '', nameSi: '', descEn: '', descSi: '', imageUrl: '', category: 'Regulatory' });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await getTrafficSigns();
+    if (res.success) setItems(res.data as TrafficSign[]);
+    else toast.error('Failed to load traffic signs');
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
   const openAdd = () => { setEditing(null); setForm({ nameEn: '', nameSi: '', descEn: '', descSi: '', imageUrl: '', category: 'Regulatory' }); setShowModal(true); };
-  const openEdit = (item: TrafficSign) => { setEditing(item); setForm({ nameEn: item.name.en, nameSi: item.name.si, descEn: item.description.en, descSi: item.description.si, imageUrl: item.imageUrl, category: item.category }); setShowModal(true); };
-  const save = () => {
-    if (!form.nameEn) return;
-    const updated = { name: { en: form.nameEn, si: form.nameSi }, description: { en: form.descEn, si: form.descSi }, imageUrl: form.imageUrl, category: form.category };
-    if (editing) setItems(items.map(i => i.id === editing.id ? { ...i, ...updated } : i));
-    else setItems([...items, { id: Date.now().toString(), ...updated }]);
-    setShowModal(false);
+  const openEdit = (item: TrafficSign) => {
+    setEditing(item);
+    const n = item.name as LocalizedContent;
+    const d = item.description as LocalizedContent;
+    setForm({ nameEn: n.en, nameSi: n.si, descEn: d.en, descSi: d.si, imageUrl: item.imageUrl, category: item.category });
+    setShowModal(true);
   };
-  const del = (id: string) => setItems(items.filter(i => i.id !== id));
+
+  const save = async () => {
+    if (!form.nameEn.trim()) { toast.error('English name is required'); return; }
+    setSaving(true);
+    const payload = {
+      name: { en: form.nameEn, si: form.nameSi },
+      description: { en: form.descEn, si: form.descSi },
+      imageUrl: form.imageUrl,
+      category: form.category,
+    };
+    const res = editing
+      ? await editTrafficSign(editing.id, payload)
+      : await createTrafficSign(payload as any);
+    if (res.success) { toast.success(res.message); setShowModal(false); load(); }
+    else toast.error(res.message);
+    setSaving(false);
+  };
+
+  const del = async (id: string) => {
+    const res = await removeTrafficSign(id);
+    if (res.success) { toast.success(res.message); load(); }
+    else toast.error(res.message);
+  };
 
   return (
     <>
@@ -265,29 +309,36 @@ function SignsTab() {
           <Plus size={14} /> Add Sign
         </button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {items.map(item => (
-          <div key={item.id} className="rounded-2xl p-5 transition-all" style={{ background: BASE, boxShadow: nmOuter }}>
-            <div className="flex items-start gap-4">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl" style={{ background: BASE, boxShadow: nmPressed }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.imageUrl} alt={item.name.en} className="h-full w-full object-contain p-1" />
-              </div>
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <LocalizedBadge content={item.name} />
-                  <CategoryBadge label={item.category} />
+      {loading ? <Spinner /> : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {items.length === 0 && <p className="col-span-2 py-12 text-center text-sm font-bold text-slate-400">No signs yet. Add one!</p>}
+          {items.map(item => {
+            const n = item.name as LocalizedContent;
+            const d = item.description as LocalizedContent;
+            return (
+              <div key={item.id} className="rounded-2xl p-5" style={{ background: BASE, boxShadow: nmOuter }}>
+                <div className="flex items-start gap-4">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl" style={{ background: BASE, boxShadow: nmPressed }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {item.imageUrl && <img src={item.imageUrl} alt={n.en} className="h-full w-full object-contain p-1" />}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <LocalizedBadge content={n} />
+                      <CategoryBadge label={item.category} />
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{d.en}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{item.description.en}</p>
+                <div className="mt-4 flex gap-2 justify-end">
+                  <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
+                  <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 flex gap-2 justify-end">
-              <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
-              <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
       {showModal && (
         <Modal title={editing ? 'Edit Sign' : 'Add Traffic Sign'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
@@ -299,10 +350,7 @@ function SignsTab() {
             <Field label="Description (Sinhala)"><Input value={form.descSi} onChange={v => setForm({ ...form, descSi: v })} placeholder="Sinhala description..." /></Field>
             <Field label="Image URL"><Input value={form.imageUrl} onChange={v => setForm({ ...form, imageUrl: v })} placeholder="https://..." /></Field>
             <Field label="Category"><Input value={form.category} onChange={v => setForm({ ...form, category: v })} placeholder="Regulatory" /></Field>
-            <div className="flex gap-3 pt-2">
-              <button onClick={save} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmOuter }}><Check size={14} /> Save</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 rounded-xl py-3 text-xs font-black tracking-widest text-slate-500 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}>Cancel</button>
-            </div>
+            <SaveCancelBtns onSave={save} onCancel={() => setShowModal(false)} saving={saving} />
           </div>
         </Modal>
       )}
@@ -312,21 +360,55 @@ function SignsTab() {
 
 // ── Fines Tab ─────────────────────────────────────────
 function FinesTab() {
-  const [items, setItems] = useState<FineGuide[]>(mockFines);
+  const [items, setItems] = useState<FineGuide[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<FineGuide | null>(null);
   const [form, setForm] = useState({ offenseEn: '', offenseSi: '', descEn: '', descSi: '', fineAmount: '', section: '' });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await getFines();
+    if (res.success) setItems(res.data as FineGuide[]);
+    else toast.error('Failed to load fine guide');
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
   const openAdd = () => { setEditing(null); setForm({ offenseEn: '', offenseSi: '', descEn: '', descSi: '', fineAmount: '', section: '' }); setShowModal(true); };
-  const openEdit = (item: FineGuide) => { setEditing(item); setForm({ offenseEn: item.offense.en, offenseSi: item.offense.si, descEn: item.description.en, descSi: item.description.si, fineAmount: item.fineAmount, section: item.section ?? '' }); setShowModal(true); };
-  const save = () => {
-    if (!form.offenseEn) return;
-    const updated = { offense: { en: form.offenseEn, si: form.offenseSi }, description: { en: form.descEn, si: form.descSi }, fineAmount: form.fineAmount, section: form.section || null };
-    if (editing) setItems(items.map(i => i.id === editing.id ? { ...i, ...updated } : i));
-    else setItems([...items, { id: Date.now().toString(), ...updated }]);
-    setShowModal(false);
+  const openEdit = (item: FineGuide) => {
+    setEditing(item);
+    const o = item.offense as LocalizedContent;
+    const d = item.description as LocalizedContent;
+    setForm({ offenseEn: o.en, offenseSi: o.si, descEn: d.en, descSi: d.si, fineAmount: String(item.fineAmount ?? ''), section: item.section ?? '' });
+    setShowModal(true);
   };
-  const del = (id: string) => setItems(items.filter(i => i.id !== id));
+
+  const save = async () => {
+    if (!form.offenseEn.trim()) { toast.error('English offense name is required'); return; }
+    if (!form.fineAmount || isNaN(Number(form.fineAmount))) { toast.error('A valid fine amount is required'); return; }
+    setSaving(true);
+    const payload = {
+      offense: { en: form.offenseEn, si: form.offenseSi },
+      description: { en: form.descEn, si: form.descSi },
+      fineAmount: form.fineAmount,
+      section: form.section || null,
+    };
+    const res = editing
+      ? await editFine(editing.id, payload as any)
+      : await createFine(payload as any);
+    if (res.success) { toast.success(res.message); setShowModal(false); load(); }
+    else toast.error(res.message);
+    setSaving(false);
+  };
+
+  const del = async (id: string) => {
+    const res = await removeFine(id);
+    if (res.success) { toast.success(res.message); load(); }
+    else toast.error(res.message);
+  };
 
   return (
     <>
@@ -336,30 +418,35 @@ function FinesTab() {
           <Plus size={14} /> Add Offense
         </button>
       </div>
-      <div className="space-y-3">
-        {items.map(item => (
-          <div key={item.id} className="rounded-2xl p-5 transition-all" style={{ background: BASE, boxShadow: nmOuter }}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1 space-y-2">
-                <LocalizedBadge content={item.offense} />
-                <p className="text-xs text-slate-500 leading-relaxed">{item.description.en}</p>
-                <div className="flex items-center gap-3 pt-1">
-                  <span className="rounded-lg px-3 py-1 text-xs font-black text-emerald-600" style={{ background: '#10B98115', border: '1px solid #10B98130' }}>
-                    Rs. {Number(item.fineAmount).toLocaleString()}
-                  </span>
-                  {item.section && (
-                    <span className="text-[11px] font-bold text-slate-400">{item.section}</span>
-                  )}
+      {loading ? <Spinner /> : (
+        <div className="space-y-3">
+          {items.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">No offenses yet. Add one!</p>}
+          {items.map(item => {
+            const o = item.offense as LocalizedContent;
+            const d = item.description as LocalizedContent;
+            return (
+              <div key={item.id} className="rounded-2xl p-5" style={{ background: BASE, boxShadow: nmOuter }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <LocalizedBadge content={o} />
+                    <p className="text-xs text-slate-500 leading-relaxed">{d.en}</p>
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="rounded-lg px-3 py-1 text-xs font-black text-emerald-600" style={{ background: '#10B98115', border: '1px solid #10B98130' }}>
+                        Rs. {Number(item.fineAmount).toLocaleString()}
+                      </span>
+                      {item.section && <span className="text-[11px] font-bold text-slate-400">{item.section}</span>}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
+                    <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
-                <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
       {showModal && (
         <Modal title={editing ? 'Edit Offense' : 'Add Offense'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
@@ -370,13 +457,10 @@ function FinesTab() {
             <Field label="Description (English)"><Input value={form.descEn} onChange={v => setForm({ ...form, descEn: v })} placeholder="English description..." /></Field>
             <Field label="Description (Sinhala)"><Input value={form.descSi} onChange={v => setForm({ ...form, descSi: v })} placeholder="Sinhala description..." /></Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Fine Amount (Rs.)"><Input value={form.fineAmount} onChange={v => setForm({ ...form, fineAmount: v })} placeholder="1000" /></Field>
+              <Field label="Fine Amount (Rs.)"><Input value={form.fineAmount} onChange={v => setForm({ ...form, fineAmount: v })} placeholder="3000" /></Field>
               <Field label="Legal Section"><Input value={form.section} onChange={v => setForm({ ...form, section: v })} placeholder="Section 141" /></Field>
             </div>
-            <div className="flex gap-3 pt-2">
-              <button onClick={save} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmOuter }}><Check size={14} /> Save</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 rounded-xl py-3 text-xs font-black tracking-widest text-slate-500 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}>Cancel</button>
-            </div>
+            <SaveCancelBtns onSave={save} onCancel={() => setShowModal(false)} saving={saving} />
           </div>
         </Modal>
       )}
@@ -386,21 +470,55 @@ function FinesTab() {
 
 // ── Contacts Tab ──────────────────────────────────────
 function ContactsTab() {
-  const [items, setItems] = useState<EmergencyContact[]>(mockContacts);
+  const [items, setItems] = useState<EmergencyContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<EmergencyContact | null>(null);
   const [form, setForm] = useState({ nameEn: '', nameSi: '', descEn: '', descSi: '', phone: '', category: 'Police' });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await getEmergencyContacts();
+    if (res.success) setItems(res.data as EmergencyContact[]);
+    else toast.error('Failed to load emergency contacts');
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
   const openAdd = () => { setEditing(null); setForm({ nameEn: '', nameSi: '', descEn: '', descSi: '', phone: '', category: 'Police' }); setShowModal(true); };
-  const openEdit = (item: EmergencyContact) => { setEditing(item); setForm({ nameEn: item.name.en, nameSi: item.name.si, descEn: item.description.en, descSi: item.description.si, phone: item.phone, category: item.category }); setShowModal(true); };
-  const save = () => {
-    if (!form.nameEn || !form.phone) return;
-    const updated = { name: { en: form.nameEn, si: form.nameSi }, description: { en: form.descEn, si: form.descSi }, phone: form.phone, category: form.category };
-    if (editing) setItems(items.map(i => i.id === editing.id ? { ...i, ...updated } : i));
-    else setItems([...items, { id: Date.now().toString(), ...updated }]);
-    setShowModal(false);
+  const openEdit = (item: EmergencyContact) => {
+    setEditing(item);
+    const n = item.name as LocalizedContent;
+    const d = item.description as LocalizedContent;
+    setForm({ nameEn: n.en, nameSi: n.si, descEn: d.en, descSi: d.si, phone: item.phone, category: item.category });
+    setShowModal(true);
   };
-  const del = (id: string) => setItems(items.filter(i => i.id !== id));
+
+  const save = async () => {
+    if (!form.nameEn.trim()) { toast.error('English name is required'); return; }
+    if (!form.phone.trim()) { toast.error('Phone number is required'); return; }
+    setSaving(true);
+    const payload = {
+      name: { en: form.nameEn, si: form.nameSi },
+      description: { en: form.descEn, si: form.descSi },
+      phone: form.phone,
+      category: form.category,
+    };
+    const res = editing
+      ? await editEmergencyContact(editing.id, payload)
+      : await createEmergencyContact(payload as any);
+    if (res.success) { toast.success(res.message); setShowModal(false); load(); }
+    else toast.error(res.message);
+    setSaving(false);
+  };
+
+  const del = async (id: string) => {
+    const res = await removeEmergencyContact(id);
+    if (res.success) { toast.success(res.message); load(); }
+    else toast.error(res.message);
+  };
 
   return (
     <>
@@ -410,32 +528,37 @@ function ContactsTab() {
           <Plus size={14} /> Add Contact
         </button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {items.map(item => {
-          const color = categoryColor[item.category] ?? '#64748B';
-          return (
-            <div key={item.id} className="rounded-2xl p-5 transition-all" style={{ background: BASE, boxShadow: nmOuter }}>
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
-                  <Phone size={20} style={{ color }} />
-                </div>
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <LocalizedBadge content={item.name} />
-                    <CategoryBadge label={item.category} />
+      {loading ? <Spinner /> : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {items.length === 0 && <p className="col-span-2 py-12 text-center text-sm font-bold text-slate-400">No contacts yet. Add one!</p>}
+          {items.map(item => {
+            const n = item.name as LocalizedContent;
+            const d = item.description as LocalizedContent;
+            const color = categoryColor[item.category] ?? '#64748B';
+            return (
+              <div key={item.id} className="rounded-2xl p-5" style={{ background: BASE, boxShadow: nmOuter }}>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+                    <Phone size={20} style={{ color }} />
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">{item.description.en}</p>
-                  <span className="inline-block rounded-xl px-3 py-1 font-mono text-sm font-black" style={{ color, background: `${color}15` }}>{item.phone}</span>
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <LocalizedBadge content={n} />
+                      <CategoryBadge label={item.category} />
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">{d.en}</p>
+                    <span className="inline-block rounded-xl px-3 py-1 font-mono text-sm font-black" style={{ color, background: `${color}15` }}>{item.phone}</span>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2 justify-end">
+                  <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
+                  <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
                 </div>
               </div>
-              <div className="mt-4 flex gap-2 justify-end">
-                <button onClick={() => openEdit(item)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Pencil size={13} className="text-blue-500" /></button>
-                <button onClick={() => del(item.id)} className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-105 active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}><Trash2 size={13} className="text-red-500" /></button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
       {showModal && (
         <Modal title={editing ? 'Edit Contact' : 'Add Emergency Contact'} onClose={() => setShowModal(false)}>
           <div className="space-y-4">
@@ -449,10 +572,7 @@ function ContactsTab() {
               <Field label="Phone Number"><Input value={form.phone} onChange={v => setForm({ ...form, phone: v })} placeholder="119" /></Field>
               <Field label="Category"><Input value={form.category} onChange={v => setForm({ ...form, category: v })} placeholder="Police" /></Field>
             </div>
-            <div className="flex gap-3 pt-2">
-              <button onClick={save} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmOuter }}><Check size={14} /> Save</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 rounded-xl py-3 text-xs font-black tracking-widest text-slate-500 uppercase transition-all hover:scale-[1.01] active:scale-95" style={{ background: BASE, boxShadow: nmSubtle }}>Cancel</button>
-            </div>
+            <SaveCancelBtns onSave={save} onCancel={() => setShowModal(false)} saving={saving} />
           </div>
         </Modal>
       )}
@@ -522,10 +642,7 @@ export default function RulesManagementPage() {
 
       {/* ── Content Area ────────────────────────────────── */}
       <main className="flex-1 px-8 pb-16 pt-2">
-        <div
-          key={activeTab}
-          className="animate-in fade-in slide-in-from-bottom-2 duration-200"
-        >
+        <div key={activeTab} className="animate-in fade-in slide-in-from-bottom-2 duration-200">
           {renderTab()}
         </div>
       </main>
