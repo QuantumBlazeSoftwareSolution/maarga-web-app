@@ -10,6 +10,7 @@ import {
   BarChart,
   BookOpen,
   LogOut,
+  ScrollText,
   LucideIcon,
 } from 'lucide-react';
 import { logout } from '@/src/lib/actions/auth';
@@ -53,6 +54,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: BarChart,
     path: '/developer-back-door/dashboard/reports',
     color: '#F59E0B',
+  },
+  {
+    label: 'Rules & Info',
+    icon: ScrollText,
+    path: '/developer-back-door/dashboard/rules',
+    color: '#8B5CF6',
   },
   {
     label: 'Station Items',
