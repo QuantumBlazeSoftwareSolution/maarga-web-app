@@ -1,0 +1,1 @@
+ALTER TABLE "rule_handbook" DROP COLUMN "order";
