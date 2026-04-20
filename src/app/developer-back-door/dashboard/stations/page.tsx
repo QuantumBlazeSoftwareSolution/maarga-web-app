@@ -835,7 +835,7 @@ export default function StationManagementPage() {
                           className="flex items-center gap-1 rounded-2xl p-1.5"
                         >
                           {/* Google map */}
-                          {mainTab === 'Initialized' && (
+                          {/* {mainTab === 'Initialized' && ( */}
                             <button
                               title="Verify on Satellite"
                               onClick={() => setVerificationStation(station)}
@@ -861,7 +861,7 @@ export default function StationManagementPage() {
                                 />
                               </svg>
                             </button>
-                          )}
+                          {/* )} */}
 
                           {/* Leaflet map - now visible across all tabs */}
                           <button

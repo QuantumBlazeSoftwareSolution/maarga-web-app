@@ -82,25 +82,38 @@ export default function MapVerificationModal({
     }
   }, [station, isOpen]);
 
+  const hasSetInitialView = useRef(false);
+
   // Leaflet Map Initialization & Cleanup
   useEffect(() => {
-    if (!isOpen || !mapContainerRef.current) return;
+    if (!isOpen || !mapContainerRef.current) {
+      hasSetInitialView.current = false;
+      return;
+    }
 
-    // Only initialize if not already done
+    const lat = parseFloat(formData.latitude);
+    const lng = parseFloat(formData.longitude);
+    const isValid = !isNaN(lat) && !isNaN(lng) && lat !== 0;
+
+    // 1. Initialize Map if not already done
     if (!mapRef.current) {
-      const lat = parseFloat(formData.latitude) || 6.9271;
-      const lng = parseFloat(formData.longitude) || 79.8612;
+      // Use fallback if not valid yet, but we'll update it soon
+      const startLat = isValid ? lat : 6.9271;
+      const startLng = isValid ? lng : 79.8612;
 
-      mapRef.current = L.map(mapContainerRef.current).setView([lat, lng], 18);
+      mapRef.current = L.map(mapContainerRef.current).setView(
+        [startLat, startLng],
+        18,
+      );
 
       L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         attribution: '&copy; Google Maps',
         maxZoom: 20,
       }).addTo(mapRef.current);
 
-      markerRef.current = L.marker([lat, lng], { draggable: true }).addTo(
-        mapRef.current,
-      );
+      markerRef.current = L.marker([startLat, startLng], {
+        draggable: true,
+      }).addTo(mapRef.current);
 
       mapRef.current.on('click', (e: L.LeafletMouseEvent) => {
         const { lat, lng } = e.latlng;
@@ -120,22 +133,21 @@ export default function MapVerificationModal({
           longitude: position.lng.toFixed(6),
         }));
       });
+      
+      if (isValid) hasSetInitialView.current = true;
     }
 
-    // Move marker if formData coordinates change (e.g. on load) 
-    // without resetting map zoom/center manually unless we want to.
-    const currentLat = parseFloat(formData.latitude);
-    const currentLng = parseFloat(formData.longitude);
-    if (!isNaN(currentLat) && !isNaN(currentLng) && markerRef.current) {
-      markerRef.current.setLatLng([currentLat, currentLng]);
+    // 2. Update Marker & View when valid data arrives
+    if (isValid && mapRef.current && markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+      
+      // Only setView automatically if we haven't done it yet for this session
+      if (!hasSetInitialView.current) {
+        mapRef.current.setView([lat, lng], 18);
+        hasSetInitialView.current = true;
+      }
     }
-
-    return () => {
-      // We only want to cleanup when the modal fully closes
-      // or when the station ID changes (handled by caller possibly)
-    };
-  }, [isOpen]); 
-
+  }, [isOpen, formData.latitude, formData.longitude]);
   // Separate effect for full cleanup on close
   useEffect(() => {
     if (!isOpen && mapRef.current) {

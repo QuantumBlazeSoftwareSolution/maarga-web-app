@@ -3,7 +3,7 @@
 import { StationInsert, stationTable } from '@/src/lib/db/schema/station';
 import { createBatchStations } from '../db/stations/write';
 import { db } from '@/src/lib/db';
-import { sql, eq, desc, and } from 'drizzle-orm';
+import { sql, eq, desc, and, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { stationItemsTable } from '../db/schema/station-items';
 import { itemsTable } from '../db/schema/items';
@@ -85,8 +85,8 @@ export async function getStations() {
 
     if (stations.length === 0) return { success: true, data: [] };
 
-    // 2. Fetch all station-item associations for these stations
-    // We join with itemsTable to get the name/type
+    // 2. Fetch associated items ONLY for the specific stations we just retrieved
+    const stationIds = stations.map((s) => s.id);
     const stationItems = await db
       .select({
         stationId: stationItemsTable.stationId,
@@ -96,7 +96,8 @@ export async function getStations() {
         availability: stationItemsTable.availability,
       })
       .from(stationItemsTable)
-      .innerJoin(itemsTable, eq(stationItemsTable.itemId, itemsTable.id));
+      .innerJoin(itemsTable, eq(stationItemsTable.itemId, itemsTable.id))
+      .where(inArray(stationItemsTable.stationId, stationIds));
 
     // 3. Map items to their respective stations
     const data = stations.map((station) => ({
