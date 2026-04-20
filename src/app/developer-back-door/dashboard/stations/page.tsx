@@ -1077,7 +1077,14 @@ export default function StationManagementPage() {
           onSave={async (data) => {
             const res = await verifyAndApproveStation(
               verificationStation.id,
-              data as any,
+              {
+                name: data.name,
+                address: data.address,
+                district: data.district as any,
+                status: data.status as any,
+                latitude: data.latitude,
+                longitude: data.longitude,
+              },
             );
             if (res.success) {
               toast.success(res.message);

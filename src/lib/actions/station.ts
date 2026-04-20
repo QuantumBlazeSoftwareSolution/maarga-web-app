@@ -303,6 +303,8 @@ export async function verifyAndApproveStation(
     address: string;
     district: District;
     status: StationStatus;
+    latitude: string;
+    longitude: string;
   },
 ) {
   try {
@@ -313,6 +315,8 @@ export async function verifyAndApproveStation(
         address: data.address,
         district: data.district || null,
         status: data.status,
+        latitude: data.latitude,
+        longitude: data.longitude,
         level: 'approved',
       })
       .where(eq(stationTable.id, id));
