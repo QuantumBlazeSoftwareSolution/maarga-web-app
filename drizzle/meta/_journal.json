@@ -127,6 +127,13 @@
       "when": 1776699560534,
       "tag": "0017_graceful_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1777116859832,
+      "tag": "0018_curved_wildside",
+      "breakpoints": true
     }
   ]
 }
