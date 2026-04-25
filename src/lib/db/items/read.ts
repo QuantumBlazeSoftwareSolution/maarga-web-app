@@ -39,3 +39,16 @@ export async function getAllItems(): Promise<Item[]> {
     return [];
   }
 }
+
+export async function getFuelItems(): Promise<Item[]> {
+  try {
+    const items = await db
+      .select()
+      .from(itemsTable)
+      .where(eq(itemsTable.itemType, 'fuel'));
+    return items;
+  } catch (error) {
+    console.error('[DB getFuelItems] Error:', error);
+    return [];
+  }
+}

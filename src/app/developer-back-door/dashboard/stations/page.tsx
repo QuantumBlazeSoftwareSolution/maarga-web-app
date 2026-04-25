@@ -835,7 +835,7 @@ export default function StationManagementPage() {
                           className="flex items-center gap-1 rounded-2xl p-1.5"
                         >
                           {/* Google map */}
-                          {mainTab === 'Initialized' && (
+                          {/* {mainTab === 'Initialized' && ( */}
                             <button
                               title="Verify on Satellite"
                               onClick={() => setVerificationStation(station)}
@@ -861,7 +861,7 @@ export default function StationManagementPage() {
                                 />
                               </svg>
                             </button>
-                          )}
+                          {/* )} */}
 
                           {/* Leaflet map - now visible across all tabs */}
                           <button
@@ -1077,7 +1077,14 @@ export default function StationManagementPage() {
           onSave={async (data) => {
             const res = await verifyAndApproveStation(
               verificationStation.id,
-              data as any,
+              {
+                name: data.name,
+                address: data.address,
+                district: data.district as any,
+                status: data.status as any,
+                latitude: data.latitude,
+                longitude: data.longitude,
+              },
             );
             if (res.success) {
               toast.success(res.message);

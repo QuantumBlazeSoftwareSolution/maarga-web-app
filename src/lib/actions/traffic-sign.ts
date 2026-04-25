@@ -31,6 +31,11 @@ export async function createTrafficSign(input: TrafficSignInsert) {
       return { success: false, message: 'English name is required' };
     }
 
+    const identifier = input.identifier?.trim();
+    if (!identifier) {
+      return { success: false, message: 'Identifier is required' };
+    }
+
     const category = input.category?.trim();
     if (!category) {
       return { success: false, message: 'Category is required' };
