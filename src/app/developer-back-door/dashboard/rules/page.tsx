@@ -257,7 +257,15 @@ function SignsTab() {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<TrafficSign | null>(null);
-  const [form, setForm] = useState({ nameEn: '', nameSi: '', descEn: '', descSi: '', imageUrl: '', category: 'Regulatory' });
+  const [form, setForm] = useState({ 
+    identifier: '', 
+    nameEn: '', 
+    nameSi: '', 
+    descEn: '', 
+    descSi: '', 
+    imageUrl: '', 
+    category: 'Regulatory' 
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -269,12 +277,32 @@ function SignsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd = () => { setEditing(null); setForm({ nameEn: '', nameSi: '', descEn: '', descSi: '', imageUrl: '', category: 'Regulatory' }); setShowModal(true); };
+  const openAdd = () => { 
+    setEditing(null); 
+    setForm({ 
+      identifier: '', 
+      nameEn: '', 
+      nameSi: '', 
+      descEn: '', 
+      descSi: '', 
+      imageUrl: '', 
+      category: 'Regulatory' 
+    }); 
+    setShowModal(true); 
+  };
   const openEdit = (item: TrafficSign) => {
     setEditing(item);
     const n = item.name as LocalizedContent;
     const d = item.description as LocalizedContent;
-    setForm({ nameEn: n.en, nameSi: n.si, descEn: d.en, descSi: d.si, imageUrl: item.imageUrl, category: item.category });
+    setForm({ 
+      identifier: item.identifier,
+      nameEn: n.en, 
+      nameSi: n.si, 
+      descEn: d.en, 
+      descSi: d.si, 
+      imageUrl: item.imageUrl, 
+      category: item.category 
+    });
     setShowModal(true);
   };
 
@@ -282,6 +310,7 @@ function SignsTab() {
     if (!form.nameEn.trim()) { toast.error('English name is required'); return; }
     setSaving(true);
     const payload = {
+      identifier: form.identifier,
       name: { en: form.nameEn, si: form.nameSi },
       description: { en: form.descEn, si: form.descSi },
       imageUrl: form.imageUrl,
@@ -325,7 +354,12 @@ function SignsTab() {
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <LocalizedBadge content={n} />
-                      <CategoryBadge label={item.category} />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded border border-slate-300">
+                          {item.identifier}
+                        </span>
+                        <CategoryBadge label={item.category} />
+                      </div>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{d.en}</p>
                   </div>
@@ -344,12 +378,15 @@ function SignsTab() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Name (English)"><Input value={form.nameEn} onChange={v => setForm({ ...form, nameEn: v })} placeholder="Stop Sign" /></Field>
+              <Field label="Identifier (e.g. DWS-39)"><Input value={form.identifier} onChange={v => setForm({ ...form, identifier: v })} placeholder="DWS-39" /></Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <Field label="Name (Sinhala)"><Input value={form.nameSi} onChange={v => setForm({ ...form, nameSi: v })} placeholder="නවත්වන්න" /></Field>
+              <Field label="Category"><Input value={form.category} onChange={v => setForm({ ...form, category: v })} placeholder="Regulatory" /></Field>
             </div>
             <Field label="Description (English)"><Input value={form.descEn} onChange={v => setForm({ ...form, descEn: v })} placeholder="English description..." /></Field>
             <Field label="Description (Sinhala)"><Input value={form.descSi} onChange={v => setForm({ ...form, descSi: v })} placeholder="Sinhala description..." /></Field>
             <Field label="Image URL"><Input value={form.imageUrl} onChange={v => setForm({ ...form, imageUrl: v })} placeholder="https://..." /></Field>
-            <Field label="Category"><Input value={form.category} onChange={v => setForm({ ...form, category: v })} placeholder="Regulatory" /></Field>
             <SaveCancelBtns onSave={save} onCancel={() => setShowModal(false)} saving={saving} />
           </div>
         </Modal>

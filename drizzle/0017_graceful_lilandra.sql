@@ -1,0 +1,1 @@
+ALTER TABLE "traffic_sign" ADD COLUMN "identifier" text DEFAULT '' NOT NULL;

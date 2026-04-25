@@ -8,6 +8,7 @@ export interface LocalizedContent {
 
 export const trafficSignTable = pgTable('traffic_sign', {
   id: uuid('id').defaultRandom().primaryKey(),
+  identifier: text('identifier').notNull().default(''),
   name: jsonb('name').$type<LocalizedContent>().notNull(),
   description: jsonb('description').$type<LocalizedContent>().notNull(),
   imageUrl: text('image_url').notNull(),
