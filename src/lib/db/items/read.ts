@@ -5,7 +5,7 @@ import { Item, itemsTable } from '../schema/items';
 
 export async function getItemsByStationId(
   stationId: string,
-): Promise<StationItem[]> {
+) {
   try {
     const stationItems = await db
       .select({
@@ -13,8 +13,6 @@ export async function getItemsByStationId(
         itemId: stationItemsTable.itemId,
         stationId: stationItemsTable.stationId,
         availability: stationItemsTable.availability,
-        createdAt: stationItemsTable.createdAt,
-        updatedAt: stationItemsTable.updatedAt,
         itemName: itemsTable.name,
         itemSinhalaName: itemsTable.sinhalaName,
         itemType: itemsTable.itemType,

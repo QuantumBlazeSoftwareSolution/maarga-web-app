@@ -134,6 +134,13 @@
       "when": 1777116859832,
       "tag": "0018_curved_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791626702745,
+      "tag": "0019_bent_kabuki",
+      "breakpoints": true
     }
   ]
 }

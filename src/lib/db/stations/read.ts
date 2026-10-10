@@ -35,7 +35,14 @@ export type LastReportEnriched = {
   updatedAt: Date;
 } | null;
 
-export type EnrichedStation = Station & {
+export type EnrichedStation = {
+  id: string;
+  name: string;
+  address: string;
+  longitude: string;
+  latitude: string;
+  type: string;
+  district: string | null;
   items: StationItemEnriched[];
   lastReport: LastReportEnriched;
 };
@@ -74,7 +81,15 @@ export async function getStationsEnriched(filters?: {
     }
 
     const stations = await db
-      .select()
+      .select({
+        id: stationTable.id,
+        name: stationTable.name,
+        address: stationTable.address,
+        longitude: stationTable.longitude,
+        latitude: stationTable.latitude,
+        type: stationTable.type,
+        district: stationTable.district,
+      })
       .from(stationTable)
       .where(and(...conditions));
     if (stations.length === 0) return [];
@@ -96,7 +111,6 @@ export async function getStationsEnriched(filters?: {
       .where(inArray(stationItemsTable.stationId, stationIds));
 
     // Query 3: Bulk fetch the latest approved report for THESE stations only
-    // We fetch all approved reports ordered by desc, then deduplicate in TS
     const allReports = await db
       .select({
         id: reportsTable.id,

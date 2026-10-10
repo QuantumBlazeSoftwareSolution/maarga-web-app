@@ -18,7 +18,7 @@ interface MapVerificationModalProps {
   onClose: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   station: any;
-  onSave: (data: {
+  onSave?: (data: {
     name: string;
     address: string;
     district: string;
@@ -26,6 +26,10 @@ interface MapVerificationModalProps {
     latitude: string;
     longitude: string;
   }) => Promise<void>;
+  onDelete?: () => Promise<void>;
+  title?: string;
+  actionLabel?: string;
+  mode?: 'verify' | 'delete';
 }
 
 export default function MapVerificationModal({
@@ -33,6 +37,10 @@ export default function MapVerificationModal({
   onClose,
   station,
   onSave,
+  onDelete,
+  title = 'Verified Station Identity',
+  actionLabel = 'Update & Verify Station',
+  mode = 'verify',
 }: MapVerificationModalProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -170,30 +178,36 @@ export default function MapVerificationModal({
 
   if (!isOpen || !station) return null;
 
-  const handleVerify = async () => {
+  const handleAction = async () => {
+    if (mode === 'delete') {
+      if (onDelete) {
+        setIsSubmitting(true);
+        await onDelete();
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     if (!formData.name || !formData.address) {
       toast.error('Name and address are required.');
       return;
     }
 
-    setIsSubmitting(true);
-    await onSave(formData);
-    setIsSubmitting(false);
+    if (onSave) {
+      setIsSubmitting(true);
+      await onSave(formData);
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div
-        className="relative flex max-h-[95vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-[#E1E4E9]"
-        style={{
-          boxShadow: '10px 10px 20px #bebec0, -10px -10px 20px #ffffff',
-        }}
-      >
+      <div className="relative flex max-h-[95vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-[#E1E4E9] border border-slate-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-4">
           <div>
             <h3 className="text-xl font-black text-slate-700">
-              Verified Station Identity
+              {title}
             </h3>
             <p className="text-xs font-medium text-slate-400">
               Full verification & coordinate sync · {formData.latitude},{' '}
@@ -384,11 +398,13 @@ export default function MapVerificationModal({
           </button>
           <button
             disabled={isSubmitting}
-            onClick={handleVerify}
-            className="flex-1 rounded-xl py-4 text-xs font-black tracking-widest text-emerald-600 uppercase transition-all hover:scale-[1.01] active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff] disabled:opacity-50"
+            onClick={handleAction}
+            className={`flex-1 rounded-xl py-4 text-xs font-black tracking-widest uppercase transition-all hover:scale-[1.01] active:shadow-[inset_4px_4px_10px_#c0c3c8,inset_-4px_-4px_10px_#ffffff] disabled:opacity-50 ${
+              mode === 'delete' ? 'text-rose-600 bg-rose-50/50' : 'text-emerald-600'
+            }`}
             style={{ boxShadow: isSubmitting ? nmPressed : nmOuter }}
           >
-            {isSubmitting ? 'Updating...' : 'Update & Verify Station'}
+            {isSubmitting ? 'Processing...' : actionLabel}
           </button>
         </div>
       </div>

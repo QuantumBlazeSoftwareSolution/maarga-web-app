@@ -78,7 +78,7 @@ export const POST = withAuth(async (req: NextRequest) => {
 
   try {
     const body = await req.json();
-    const { stationId, queue, message, items, userId: bodyAuthId } = body;
+    const { stationId, queue, message, items, userId: bodyAuthId, latitude, longitude } = body;
     const authId = req.headers.get('x-user-id') ?? bodyAuthId ?? null;
 
     // Delegate the entire process to the Action (Controller)
@@ -88,6 +88,8 @@ export const POST = withAuth(async (req: NextRequest) => {
       message,
       authId,
       items,
+      userLatitude: latitude !== undefined && latitude !== null ? Number(latitude) : undefined,
+      userLongitude: longitude !== undefined && longitude !== null ? Number(longitude) : undefined,
     });
 
     if (!result.status) {

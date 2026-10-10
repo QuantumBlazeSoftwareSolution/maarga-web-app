@@ -37,6 +37,25 @@ export async function getRecentReports() {
   return await dbGetRecentReports(20);
 }
 
+function calculateDistanceInMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371e3; // Earth's radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 /**
  * Controller logic: Submits a report and runs the consensus engine.
  */
@@ -46,9 +65,11 @@ export async function submitReportAction(data: {
   message?: string;
   authId: string;
   items: { itemId: string; availability: string }[];
+  userLatitude?: number;
+  userLongitude?: number;
 }) {
   try {
-    const { stationId, queue, message, authId, items } = data;
+    const { stationId, queue, message, authId, items, userLatitude, userLongitude } = data;
 
     // 1. Validation & User Lookup
     if (!stationId || !items || items.length === 0 || !authId) {
@@ -60,6 +81,39 @@ export async function submitReportAction(data: {
       return { status: false, message: 'User not found.' };
     }
     const user = userRes.user;
+
+    // Fetch station coordinates to determine proximity
+    let isNearStation = false;
+    const stationRecords = await db
+      .select({
+        latitude: stationTable.latitude,
+        longitude: stationTable.longitude,
+      })
+      .from(stationTable)
+      .where(eq(stationTable.id, stationId));
+
+    if (
+      stationRecords.length > 0 &&
+      userLatitude !== undefined &&
+      userLongitude !== undefined &&
+      !isNaN(userLatitude) &&
+      !isNaN(userLongitude)
+    ) {
+      const stLat = parseFloat(stationRecords[0].latitude);
+      const stLon = parseFloat(stationRecords[0].longitude);
+      if (!isNaN(stLat) && !isNaN(stLon)) {
+        const distance = calculateDistanceInMeters(
+          userLatitude,
+          userLongitude,
+          stLat,
+          stLon,
+        );
+        // Proximity threshold: within 500 meters is considered at/near the station
+        if (distance <= 500) {
+          isNearStation = true;
+        }
+      }
+    }
 
     // 2. Data Preparation
     const queueValue = (QUEUE_MAP[queue] ?? 'no_queue') as
@@ -98,6 +152,7 @@ export async function submitReportAction(data: {
       user.id,
       parseFloat(user.trustScore ?? '1.0') || 1.0,
       items as { itemId: string; availability: string }[],
+      isNearStation,
     );
 
     return {
@@ -107,6 +162,7 @@ export async function submitReportAction(data: {
       confirmedItemsCount: consensusRes.confirmedItemsCount,
       trustScoreIncreased: consensusRes.trustScoreIncreased,
       newTrustScore: consensusRes.newTrustScore,
+      isNearStation,
     };
   } catch (error) {
     console.error('submitReportAction error:', error);
@@ -132,22 +188,17 @@ async function runConsensusEngine(
   currentUserId: string,
   currentUserTrustScore: number,
   reportedItems: { itemId: string; availability: string }[],
+  isNearStation: boolean,
 ) {
-  // Fetch the absolute latest raw records from DB (regardless of time)
-  // This helps us evaluate the strict "last 3 reports" rule.
+  // Fetch recent item reports for this station
   const recentRows = await getLatestItemReportsForStation(stationId, 30);
 
   let confirmedCount = 0;
   const confirmedItems: { itemId: string; availability: string }[] = [];
 
   for (const item of reportedItems) {
-    // Filter the rows specifically for this item and sort by latest (they are already sorted by DESC via query)
-    const itemHistory = recentRows.filter((r) => r.itemId === item.itemId);
-
-    // Edge Case: The station has EXACTLY 0 previous reports for this item.
-    // Note: itemHistory includes the currently inserted report row, so length <= 1 means NO prior history.
-    if (itemHistory.length <= 1) {
-      // Instantly confirm to provide initial data to the station
+    // 1. If user is physically at/near the station (<= 500m), confirm on 1st attempt!
+    if (isNearStation) {
       await updateStationItemAvailability(
         stationId,
         item.itemId,
@@ -158,21 +209,17 @@ async function runConsensusEngine(
       continue;
     }
 
-    // Normal path: Get the latest 3 records for this item strictly
-    const latest3 = itemHistory.slice(0, 3);
+    // 2. If user is reporting from a distance:
+    // Need at least 2 reports agreeing on this status (current + previous matching report)
+    const itemHistory = recentRows.filter((r) => r.itemId === item.itemId);
 
-    // Sum points for the status the user just reported within the latest 3
-    let totalPointsForReportedStatus = 0;
+    // Filter recent reports that have the exact same reported availability
+    const matchingReports = itemHistory.filter(
+      (r) => r.availability === item.availability,
+    );
 
-    for (const row of latest3) {
-      if (row.availability === item.availability) {
-        const rowTrust = parseFloat(row.trustScore ?? '1.0') || 1.0;
-        totalPointsForReportedStatus += getPointsFromTrustScore(rowTrust);
-      }
-    }
-
-    // Business Logic: Threshold check
-    if (totalPointsForReportedStatus >= CONFIRMATION_THRESHOLD) {
+    // If there are at least 2 matching reports (including current one), confirm!
+    if (matchingReports.length >= 2) {
       await updateStationItemAvailability(
         stationId,
         item.itemId,
