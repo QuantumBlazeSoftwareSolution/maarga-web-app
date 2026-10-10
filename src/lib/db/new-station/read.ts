@@ -16,6 +16,7 @@ export async function getAllNewStationReports() {
         status: newStationReportsTable.status,
         createdAt: newStationReportsTable.createdAt,
         userName: usersTable.name,
+        userAuthId: usersTable.authId,
       })
       .from(newStationReportsTable)
       .leftJoin(usersTable, eq(newStationReportsTable.userId, usersTable.id))

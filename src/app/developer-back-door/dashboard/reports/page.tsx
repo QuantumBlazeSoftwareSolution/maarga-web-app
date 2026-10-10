@@ -115,6 +115,7 @@ interface NewStationReport {
   status: string;
   createdAt: Date;
   userName: string | null;
+  userAuthId?: string | null;
 }
 
 interface StationNameRequestItem {
@@ -130,6 +131,7 @@ interface StationNameRequestItem {
   createdAt: Date;
   userName: string | null;
   userEmail: string | null;
+  userAuthId?: string | null;
 }
 
 interface StationDeleteRequestItem {
@@ -145,6 +147,7 @@ interface StationDeleteRequestItem {
   createdAt: Date;
   userName: string | null;
   userEmail: string | null;
+  userAuthId?: string | null;
 }
 
 export default function ReportsMonitoring() {
@@ -771,6 +774,7 @@ export default function ReportsMonitoring() {
                       status: data.status as any,
                       latitude: data.latitude,
                       longitude: data.longitude,
+                      userAuthId: activeModalItem.request.userAuthId ?? undefined,
                     },
                   );
                   if (res.success) {
@@ -789,6 +793,8 @@ export default function ReportsMonitoring() {
                   const res = await confirmDeleteStationRequestAction(
                     activeModalItem.request.id,
                     activeModalItem.request.stationId,
+                    activeModalItem.request.userAuthId ?? undefined,
+                    activeModalItem.request.stationName,
                   );
                   if (res.success) {
                     toast.success(res.message);

@@ -103,6 +103,8 @@ export async function getStationDeleteRequestsAction() {
   return result.data || [];
 }
 
+import { sendUserNotificationToAuthId } from './fcm';
+
 /**
  * Approve a name request: updates the station name and marks request as approved
  */
@@ -116,6 +118,7 @@ export async function approveStationNameRequestAction(
     status: StationStatus;
     latitude: string;
     longitude: string;
+    userAuthId?: string;
   },
 ) {
   try {
@@ -133,6 +136,17 @@ export async function approveStationNameRequestAction(
       .where(eq(stationTable.id, stationId));
 
     await updateStationNameRequestStatus(requestId, 'approved');
+
+    // Send push notification to the user who requested the change
+    if (data.userAuthId) {
+      await sendUserNotificationToAuthId(
+        data.userAuthId,
+        'Station Name Update Approved! 🎉',
+        `Your name suggestion for "${data.name}" has been reviewed and approved. Thank you for contributing!`,
+        { stationId, type: 'name_approved' }
+      );
+    }
+
     revalidatePath('/developer-back-door/dashboard/reports');
     revalidatePath('/developer-back-door/dashboard/stations');
 
@@ -163,10 +177,23 @@ export async function rejectStationNameRequestAction(requestId: string) {
 export async function confirmDeleteStationRequestAction(
   requestId: string,
   stationId: string,
+  userAuthId?: string,
+  stationName?: string,
 ) {
   try {
     // Delete station (cascades to requests/items/reports)
     await db.delete(stationTable).where(eq(stationTable.id, stationId));
+
+    // Send push notification to the reporting user
+    if (userAuthId) {
+      await sendUserNotificationToAuthId(
+        userAuthId,
+        'Station Deletion Approved 🗑️',
+        `Your report for "${stationName || 'the requested station'}" has been approved and the station has been removed from the map.`,
+        { type: 'delete_approved' }
+      );
+    }
+
     revalidatePath('/developer-back-door/dashboard/reports');
     revalidatePath('/developer-back-door/dashboard/stations');
 

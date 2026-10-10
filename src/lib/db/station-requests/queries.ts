@@ -59,6 +59,7 @@ export async function getAllStationNameRequests() {
         createdAt: stationNameRequestsTable.createdAt,
         userName: usersTable.name,
         userEmail: usersTable.email,
+        userAuthId: usersTable.authId,
       })
       .from(stationNameRequestsTable)
       .innerJoin(stationTable, eq(stationNameRequestsTable.stationId, stationTable.id))
@@ -88,6 +89,7 @@ export async function getAllStationDeleteRequests() {
         createdAt: stationDeleteRequestsTable.createdAt,
         userName: usersTable.name,
         userEmail: usersTable.email,
+        userAuthId: usersTable.authId,
       })
       .from(stationDeleteRequestsTable)
       .innerJoin(stationTable, eq(stationDeleteRequestsTable.stationId, stationTable.id))

@@ -1,6 +1,9 @@
+import { db } from '@/src/lib/db';
 import { getItemsByStationId } from '@/src/lib/db/items/read';
 import { getStationLastConfirmedReport } from '@/src/lib/db/report/read';
+import { stationTable } from '@/src/lib/db/schema/station';
 import { withAuth } from '@/src/lib/proxy';
+import { eq } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -96,10 +99,23 @@ export const GET = withAuth(async (req: NextRequest) => {
       );
     }
 
-    const [stationItems, lastConfirmedReport] = await Promise.all([
+    const [stationInfo, stationItems, lastConfirmedReport] = await Promise.all([
+      db
+        .select({
+          id: stationTable.id,
+          name: stationTable.name,
+          address: stationTable.address,
+          district: stationTable.district,
+          status: stationTable.status,
+        })
+        .from(stationTable)
+        .where(eq(stationTable.id, stationId))
+        .limit(1),
       getItemsByStationId(stationId),
       getStationLastConfirmedReport(stationId),
     ]);
+
+    const station = stationInfo[0] || null;
 
     console.log('[Stations/Items] ✅ items found:', stationItems.length);
     console.log(
@@ -108,6 +124,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     );
 
     return NextResponse.json({
+      station,
       stationItems,
       lastConfirmedReport,
     });

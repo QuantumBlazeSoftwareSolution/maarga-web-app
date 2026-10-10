@@ -159,3 +159,69 @@ export async function sendGeohashNotification(
   }
 }
 
+export async function sendUserNotificationToAuthId(
+  authId: string,
+  title: string,
+  body: string,
+  data?: Record<string, string>
+) {
+  try {
+    if (!authId) return { success: false, error: 'No authId provided' };
+
+    const records = await db
+      .select({ token: fcmTokensTable.token })
+      .from(fcmTokensTable)
+      .where(eq(fcmTokensTable.authId, authId));
+
+    const tokens = records.map((r) => r.token);
+    if (tokens.length === 0) {
+      console.log(`[FCM] No tokens registered for user ${authId}`);
+      return { success: false, error: 'No tokens found' };
+    }
+
+    const payload = {
+      tokens,
+      notification: {
+        title,
+        body,
+      },
+      data: data || {},
+      android: {
+        priority: 'high' as const,
+        notification: {
+          sound: 'default',
+          channelId: 'high_importance_channel',
+        },
+      },
+    };
+
+    const response = await getMessaging().sendEachForMulticast(payload);
+    let tokensToRemove: string[] = [];
+    if (response.failureCount > 0) {
+      response.responses.forEach((resp, idx) => {
+        if (!resp.success && resp.error) {
+          const errorCode = resp.error.code;
+          if (
+            errorCode === 'messaging/invalid-registration-token' ||
+            errorCode === 'messaging/registration-token-not-registered'
+          ) {
+            tokensToRemove.push(tokens[idx]);
+          }
+        }
+      });
+    }
+
+    if (tokensToRemove.length > 0) {
+      await db
+        .delete(fcmTokensTable)
+        .where(inArray(fcmTokensTable.token, tokensToRemove));
+    }
+
+    return { success: true, successCount: response.successCount };
+  } catch (error: any) {
+    console.error('Send user notification error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+

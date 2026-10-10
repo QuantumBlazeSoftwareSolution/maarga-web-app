@@ -293,6 +293,8 @@ export async function updateStationCoordinates(
   }
 }
 
+import { sendUserNotificationToAuthId } from './fcm';
+
 /**
  * Server Action to verify and approve a station.
  * Updates name, address, district, status and sets level to 'approved'.
@@ -306,6 +308,7 @@ export async function verifyAndApproveStation(
     status: StationStatus;
     latitude: string;
     longitude: string;
+    userAuthId?: string;
   },
 ) {
   try {
@@ -321,6 +324,16 @@ export async function verifyAndApproveStation(
         level: 'approved',
       })
       .where(eq(stationTable.id, id));
+
+    // Send push notification if userAuthId is provided
+    if (data.userAuthId) {
+      await sendUserNotificationToAuthId(
+        data.userAuthId,
+        'New Station Published! ⛽',
+        `Your suggested station "${data.name}" has been verified and published to the Maarga map. Awesome job!`,
+        { stationId: id, type: 'new_station_approved' }
+      );
+    }
 
     revalidatePath('/developer-back-door/dashboard/stations');
     return { success: true, message: 'Station verified and approved!' };
