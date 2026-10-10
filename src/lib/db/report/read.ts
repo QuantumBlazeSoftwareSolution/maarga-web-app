@@ -8,10 +8,19 @@ import { itemsTable } from '../schema/items';
 
 export async function getStationLastConfirmedReport(
   stationId: string,
-): Promise<Report> {
+): Promise<Report | undefined> {
   try {
     const report = await db
-      .select()
+      .select({
+        id: reportsTable.id,
+        stationId: reportsTable.stationId,
+        userId: reportsTable.userId,
+        queue: reportsTable.queue,
+        message: reportsTable.message,
+        status: reportsTable.status,
+        createdAt: reportsTable.createdAt,
+        updatedAt: reportsTable.updatedAt,
+      })
       .from(reportsTable)
       .where(
         and(
@@ -24,7 +33,7 @@ export async function getStationLastConfirmedReport(
 
     return report[0];
   } catch {
-    return {} as Report;
+    return undefined;
   }
 }
 
