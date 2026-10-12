@@ -21,7 +21,16 @@ export const GET = withAuth(async (request: Request) => {
     console.log('[API] Fetching fuel items...');
     const fuels = await getFuelItems();
     console.log(`[API] Found ${fuels.length} fuel items.`);
-    return NextResponse.json({ success: true, data: fuels });
+    return NextResponse.json(
+      { success: true, data: fuels },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+          'CDN-Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+          'Cloudflare-CDN-Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+        },
+      },
+    );
   } catch (error) {
     console.error('API Fuel Items GET Error:', error);
     return NextResponse.json(

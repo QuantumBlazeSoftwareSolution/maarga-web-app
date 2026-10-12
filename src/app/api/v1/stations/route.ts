@@ -101,7 +101,13 @@ export const GET = withAuth(async (req: NextRequest) => {
       itemId: itemId || undefined,
     });
 
-    return NextResponse.json(stations);
+    return NextResponse.json(stations, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=86400',
+        'CDN-Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=86400',
+        'Cloudflare-CDN-Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=86400',
+      },
+    });
   } catch (error: unknown) {
     console.error('[API v1 Stations] Error:', error);
     return NextResponse.json(

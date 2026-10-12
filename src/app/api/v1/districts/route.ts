@@ -24,7 +24,13 @@ import { districtEnumItems } from '@/src/lib/db/schema/enum';
  */
 export const GET = withAuth(async (_req: NextRequest) => {
   try {
-    return NextResponse.json(districtEnumItems);
+    return NextResponse.json(districtEnumItems, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+        'CDN-Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+        'Cloudflare-CDN-Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+      },
+    });
   } catch (error: unknown) {
     console.error('[API v1 Districts] Error:', error);
     return NextResponse.json(

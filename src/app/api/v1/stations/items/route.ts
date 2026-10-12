@@ -123,11 +123,20 @@ export const GET = withAuth(async (req: NextRequest) => {
       lastConfirmedReport?.id ?? 'none',
     );
 
-    return NextResponse.json({
-      station,
-      stationItems,
-      lastConfirmedReport,
-    });
+    return NextResponse.json(
+      {
+        station,
+        stationItems,
+        lastConfirmedReport,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          'CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          'Cloudflare-CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      },
+    );
   } catch (error) {
     console.error('[Stations/Items] ❌ Error:', error);
     return NextResponse.json(
